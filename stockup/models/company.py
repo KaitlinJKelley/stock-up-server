@@ -20,9 +20,9 @@ class Company(models.Model):
 
     company_name = CharField(max_length=200)
     ein = CharField(max_length=25)
-    report_view = CharField(choices=report_view_choices, null=True)
-    order_schedule = CharField(choices=order_schedule_choices, null=True)
-    cat_pref = ForeignKey("Category", null=True, on_delete=SET_NULL(True))
-    logo  ImageField(upload_to='products', height_field=None, width_field=None, max_length=None, null=True, blank=True)
+    report_view = CharField(choices=report_view_choices.choices, null=True, max_length=100)
+    order_schedule = CharField(choices=order_schedule_choices.choices, null=True, max_length=100)
+    cat_pref = ForeignKey("Category", null=True, on_delete=SET_NULL)
+    logo  = ImageField(upload_to='logos', height_field=None, width_field=None, max_length=None, null=True, blank=True)
 
     
