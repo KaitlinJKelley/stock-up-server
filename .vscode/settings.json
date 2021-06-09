@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "/Users/kaitlinkelley/.local/share/virtualenvs/stock-up-api-RsYKNSDy/bin/python",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "db.sqlite3",
+            "name": "stockup"
+        }
+    ]
+}
