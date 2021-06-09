@@ -1,0 +1,16 @@
+[
+    {
+        "model": "stockupapi.unitofmeasurement",
+        "pk": 1,
+        "fields": {
+            "label": "ounces"
+        }
+    },
+    {
+        "model": "stockupapi.unitofmeasurement",
+        "pk": 2,
+        "fields": {
+            "label": "inches"
+        }
+    }
+]

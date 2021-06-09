@@ -1,0 +1,18 @@
+[
+    {
+     "model": "stockupapi.vendor",
+     "pk": 1,
+     "fields": {
+         "name": "Jerry's Artarama",
+         "website": "https://www.jerrysartarama.com/online-listing/bulk-buying-deals"
+     }   
+    },
+    {
+     "model": "stockupapi.vendor",
+     "pk": 2,
+     "fields": {
+         "name": "The Leather Guy",
+         "website": "https://theleatherguy.org/pages/register-for-wholesale"
+     }   
+    }
+]
