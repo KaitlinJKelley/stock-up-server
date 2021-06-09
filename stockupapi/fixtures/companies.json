@@ -1,0 +1,26 @@
+[
+    {
+        "model": "stockupapi.company",
+        "pk": 1,
+        "fields": {
+            "company_name": "Kaitlin Sells Art",
+            "ein": "11-1111111",
+            "report_view": "monthly",
+            "order_schedule": "biweekly",
+            "cat_pref": 2,
+            "logo": null
+        }
+    },
+    {
+        "model": "stockupapi.company",
+        "pk": 2,
+        "fields": {
+            "company_name": "Steve Sells Manufacturing Products",
+            "ein": "22-2222222",
+            "report_view": "weekly",
+            "order_schedule": "monthly",
+            "cat_pref": 1,
+            "logo": null
+        }
+    }
+]

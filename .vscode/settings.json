@@ -5,7 +5,7 @@
             "previewLimit": 50,
             "driver": "SQLite",
             "database": "db.sqlite3",
-            "name": "stockup"
+            "name": "stockupapi"
         }
     ]
 }

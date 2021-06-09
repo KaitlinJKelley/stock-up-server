@@ -1,0 +1,20 @@
+[
+    {
+        "model": "stockupapi.product",
+        "pk": 1,
+        "fields": {
+            "name": "Painting of a Flamingo",
+            "company_id": 1,
+            "image": null
+        }
+    },
+    {
+        "model": "stockupapi.product",
+        "pk": 2,
+        "fields": {
+            "name": "Leather Arm Protector",
+            "company_id": 2,
+            "image": null
+        }
+    }
+]

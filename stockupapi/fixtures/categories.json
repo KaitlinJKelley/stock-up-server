@@ -1,0 +1,16 @@
+[
+    {
+        "model": "stockupapi.category",
+        "pk": 1,
+        "fields": {
+            "label": "manufacturing"
+        }
+    },
+    {
+        "model": "stockupapi.category",
+        "pk": 2,
+        "fields": {
+            "label": "Art"
+        }
+    }
+]
