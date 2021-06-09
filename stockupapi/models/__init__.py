@@ -3,7 +3,7 @@ from .company_parts import CompanyPart
 from .company import Company
 from .employee import Employee
 from .order_rec_product_company_part import OrderRecPart
-from .order_rec_products import OrderRecProducts
+from .order_rec_product import OrderRecProduct
 from .order_rec import OrderRec
 from .parts import Part
 from .product_company_part import ProductPart
