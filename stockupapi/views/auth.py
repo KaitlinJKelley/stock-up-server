@@ -8,7 +8,6 @@ from django.views.decorators.csrf import csrf_exempt
 from stockupapi.models import Company
 from rest_framework import status
 
-
 @csrf_exempt
 def login_user(request):
 
@@ -37,7 +36,7 @@ def register_user(request):
 
     # Load the JSON string of the request body into a dict
     req_body = json.loads(request.body.decode())
-
+    # Create new Django user
     new_user = User.objects.create_user(
         username=req_body['username'],
         email=req_body['email'],
@@ -45,7 +44,7 @@ def register_user(request):
         first_name=req_body['first_name'],
         last_name=req_body['last_name']
     )
-
+    # Create the company that user registered 
     company = Company.objects.create(
         company_name = req_body["companyName"],
         ein = req_body["ein"],
@@ -56,7 +55,7 @@ def register_user(request):
     )
 
     company.save()
-
+    # Add the new user as an employee and assign them to the new company
     employee = Employee.objects.create(
         employee_id=req_body['employeeId'],
         company = company,
