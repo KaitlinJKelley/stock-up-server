@@ -74,11 +74,4 @@ class PartSerializer(serializers.ModelSerializer):
 
         fields = '__all__'
         depth = 1
-class PartSerializer(serializers.ModelSerializer):
-
-    class Meta:
-
-        model = Part
-
-        fields = '__all__'
 
