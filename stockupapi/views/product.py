@@ -48,12 +48,17 @@ class ProductViewSet(ViewSet):
     
     def retrieve(self, request, pk):
         company = Company.objects.get(employee__user = request.auth.user)
-        
-        product = Product.objects.get(pk=pk, company=company)
 
-        serializer = ProductSerializer(product, many=False, context={'request': request})
+        try:
+            product = Product.objects.get(pk=pk, company=company)
 
-        return Response(serializer.data)
+            serializer = ProductSerializer(product, many=False, context={'request': request})
+
+            return Response(serializer.data)
+
+        except Product.DoesNotExist:
+            return Response({"error": "This product does not exist or you may not have access to view it"})
+
 
 
 class PartSerializer(serializers.ModelSerializer):
@@ -83,7 +88,7 @@ class ProductPartSerializer(serializers.BaseSerializer):
         }
 
 class CompanyPartSerializer(ProductPartSerializer):
-    
+
     # Passes the Product object to the ProductPartSerializer
     part = ProductPartSerializer(many=False, context={"product": Product})
 
