@@ -1,12 +1,12 @@
 from stockupapi.models.product_company_part import ProductPart
 from stockupapi.models.parts import Part
-from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import Company, Product, CompanyPart, company_parts
+from stockupapi.models import Company, Product, CompanyPart
+import os.path
 
 class ProductViewSet(ViewSet):
 
@@ -45,6 +45,15 @@ class ProductViewSet(ViewSet):
         serializer = ProductSerializer(product, many=False, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def retrieve(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+        
+        product = Product.objects.get(pk=pk, company=company)
+
+        serializer = ProductSerializer(product, many=False, context={'request': request})
+
+        return Response(serializer.data)
 
 
 class PartSerializer(serializers.ModelSerializer):
@@ -53,21 +62,39 @@ class PartSerializer(serializers.ModelSerializer):
       
         model = Part
 
-        fields = ('name',)   
+        fields = ('name',) 
 
-class CompanyPartSerializer(serializers.ModelSerializer):
+# Custom serializer
+class ProductPartSerializer(serializers.BaseSerializer):
 
-    part = PartSerializer(many=True)
+    def to_representation(self, instance):
+        # instance = CompanyPart object
+        id = instance.id
+        
+        # splits the request path to retrieve the id of the product 
+        product = os.path.split(self.context["request"].path)[1]
+        product_part = ProductPart.objects.get(company_part=id, product__id=product)
+        instance.amount_used = product_part.amount_used
+
+        return {
+            "id": instance.id,
+            "name": PartSerializer(instance.part).data["name"],
+            "amount_used": instance.amount_used
+        }
+
+class CompanyPartSerializer(ProductPartSerializer):
+    
+    # Passes the Product object to the ProductPartSerializer
+    part = ProductPartSerializer(many=False, context={"product": Product})
 
     class Meta:
       
         model = CompanyPart
 
-        fields = ('id', 'part')
+        fields = ('id','name','part',)
 
 class ProductSerializer(serializers.ModelSerializer):
-    # TODO: pull specific data from CompanyPartSerializer, instead of send everything back
-    
+
     parts = CompanyPartSerializer(many=True)
 
     class Meta:
