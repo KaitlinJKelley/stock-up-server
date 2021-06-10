@@ -1,0 +1,24 @@
+[
+    {
+        "model": "stockupapi.companypart",
+        "pk": 1,
+        "fields": {
+            "company_id": 1,
+            "part_id": 1,
+            "in_inventory": 80,
+            "min_required": 50,
+            "cost": 2.00
+        }
+    },
+    {
+        "model": "stockupapi.companypart",
+        "pk": 2,
+        "fields": {
+            "company_id": 1,
+            "part_id": 2,
+            "in_inventory": 45,
+            "min_required": 20,
+            "cost": 6.00
+        }
+    }
+]
