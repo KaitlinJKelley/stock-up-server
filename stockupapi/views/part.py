@@ -10,10 +10,18 @@ from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart
 
 class PartDatabaseViewSet(ViewSet):
-    class PartSerializer(serializers.ModelSerializer):
+    def list(self, request):
+        all_parts = Part.objects.all()
 
-        class Meta:
+        serializer = PartSerializer(all_parts, many=True, context={'request': request})
 
-            model = Part
+        return Response(serializer.data)
 
-            fields = '__all__'
+class PartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = Part
+
+        fields = '__all__'
+        depth = 1
