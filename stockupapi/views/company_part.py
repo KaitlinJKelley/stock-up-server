@@ -9,11 +9,10 @@ from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart
 
-class CompanyInventoryViewSet(ViewSet):
-    class CompanyPartSerializer(serializers.ModelSerializer):
+class CompanyPartSerializer(serializers.ModelSerializer):
 
-        class Meta:
+    class Meta:
 
-            model = CompanyPart
+        model = CompanyPart
 
-            fields = '__all__'
+        fields = '__all__'
