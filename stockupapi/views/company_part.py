@@ -1,3 +1,4 @@
+from .part import PartSerializer
 from django.views.generic.base import View
 from stockupapi.models.product_company_part import ProductPart
 from stockupapi.models.parts import Part
@@ -9,11 +10,11 @@ from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart
 
-class CompanyInventoryViewSet(ViewSet):
-    class CompanyPartSerializer(serializers.ModelSerializer):
+class CompanyPartSerializer(serializers.ModelSerializer):
 
-        class Meta:
+    class Meta:
+        part = PartSerializer(many=False)
 
-            model = CompanyPart
+        model = CompanyPart
 
-            fields = '__all__'
+        fields = '__all__'

@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart
-from stockupapi.views.company_part import CompanyInventoryViewSet
+from .company_part import CompanyPartSerializer
 
 class ProductViewSet(ViewSet):
 
@@ -49,13 +49,13 @@ class ProductViewSet(ViewSet):
 class ProductSerializer(serializers.ModelSerializer):
 
     # def part_partial_serialize(self, obj):
-    #     part = CompanyInventoryViewSet.CompanyPartSerializer(obj, many=True)
+    #     part = CompanyPartSerializer(obj, many=True)
 
     #     return part
 
     # parts = serializers.SerializerMethodField(method_name = "part_partial_serialize")
 
-    # parts = CompanyInventoryViewSet.CompanyPartSerializer(many=True)
+    # parts = CompanyPartSerializer(many=True)
 
     class Meta:
         model = Product
