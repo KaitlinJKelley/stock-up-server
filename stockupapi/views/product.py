@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart, company_parts
-from stockupapi.views.company_part import CompanyPartSerializer
 
 class ProductViewSet(ViewSet):
 
@@ -47,22 +46,33 @@ class ProductViewSet(ViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
+class PartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+      
+        model = Part
+
+        fields = ('name',)   
+
+class CompanyPartSerializer(serializers.ModelSerializer):
+
+    part = PartSerializer(many=True)
+
+    class Meta:
+      
+        model = CompanyPart
+
+        fields = ('id', 'part')
+
 class ProductSerializer(serializers.ModelSerializer):
     # TODO: pull specific data from CompanyPartSerializer, instead of send everything back
-
-    # def part_partial_serialize(self, obj):
-    #     part = CompanyPartSerializer(obj, many=True)
-
-    #     return part
-
-    # parts = serializers.SerializerMethodField(method_name = "part_partial_serialize")
-
-    # parts = CompanyPartSerializer(many=True)
+    
+    parts = CompanyPartSerializer(many=True)
 
     class Meta:
         model = Product
 
         fields = ('id', 'name', 'parts')
-        depth = 1
 
     
