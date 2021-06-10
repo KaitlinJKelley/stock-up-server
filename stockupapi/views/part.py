@@ -12,7 +12,6 @@ from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models.company_parts import CompanyPart
 from stockupapi.models import Company
-# from .company_part import CompanyPartSerializer
 
 class PartDatabaseViewSet(ViewSet):
     def list(self, request):
@@ -25,17 +24,18 @@ class PartDatabaseViewSet(ViewSet):
     def create(self, request):
         # TODO: Handle image upload
         uom = UnitOfMeasurement.objects.get(pk=request.data["unitOfMeasurement"])
-
+        # Add the new part to the Part Databas (all parts added by any user)
         new_part = Part()
         new_part.name = request.data["name"]
         new_part.part_number = request.data["partNumber"]
         new_part.unit_of_measurement = uom
-
+        # If the client sends an integer it should be a vendor Id
         if type(request.data["vendor"]) == int:
             vendor = Vendor.objects.get(pk=request.data["vendor"])
             new_part.vendor = vendor
 
             new_part.save()
+        # If the client sends a string it should be a new vendor name and include a website url
         elif type(request.data["vendor"]) == str:
             new_vendor = Vendor()
             new_vendor.name = request.data["vendor"]
@@ -48,10 +48,10 @@ class PartDatabaseViewSet(ViewSet):
             new_part.save()
 
         serializer = PartSerializer(new_part, many=False, context={'request': request})
-
+        # Get the company that the user creating the part belongs to
         company = Company.objects.get(employee__user = request.auth.user)
         
-
+        # Create a company_part (adds the part to the company's inventory)
         company_part = CompanyPart()
         company_part.company = company
         company_part.part = new_part
@@ -62,7 +62,7 @@ class PartDatabaseViewSet(ViewSet):
 
         company_part.save()
 
-        # How to add an additional field to serializer.data, such as message that part was also added to user inventory
+        #TODO: How to add an additional field to serializer.data, such as message that part was also added to user inventory
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

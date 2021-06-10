@@ -6,8 +6,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import Company, Product, CompanyPart
-from .company_part import CompanyPartSerializer
+from stockupapi.models import Company, Product, CompanyPart, company_parts
+from stockupapi.views.company_part import CompanyPartSerializer
 
 class ProductViewSet(ViewSet):
 
@@ -30,7 +30,8 @@ class ProductViewSet(ViewSet):
         product.name = request.data["name"]
 
         product.save()
-
+        # Create a ProductPart instance for every part the user added when they created the product
+        # TODO: Add products.part_list and append product_part as created; see what that does 
         for part in request.data["parts"]:
             company_part = CompanyPart.objects.get(pk=part["partId"])
             
@@ -47,6 +48,7 @@ class ProductViewSet(ViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class ProductSerializer(serializers.ModelSerializer):
+    # TODO: pull specific data from CompanyPartSerializer, instead of send everything back
 
     # def part_partial_serialize(self, obj):
     #     part = CompanyPartSerializer(obj, many=True)
