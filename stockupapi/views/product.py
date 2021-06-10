@@ -57,8 +57,23 @@ class ProductViewSet(ViewSet):
             return Response(serializer.data)
 
         except Product.DoesNotExist:
-            return Response({"error": "This product does not exist or you may not have access to view it"})
+            return Response({"error": "This product does not exist or you may not have access to view it"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    def destroy(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
 
+        try:
+            product = Product.objects.get(pk=pk, company=company)
+
+            # soft delete
+            product.delete()
+
+            # TODO: Consider deleting associated ProductParts
+
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+        except Product.DoesNotExist:
+            return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)           
 
 
 class PartSerializer(serializers.ModelSerializer):
