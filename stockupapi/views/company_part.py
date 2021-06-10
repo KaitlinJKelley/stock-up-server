@@ -1,3 +1,4 @@
+from .part import PartSerializer
 from django.views.generic.base import View
 from stockupapi.models.product_company_part import ProductPart
 from stockupapi.models.parts import Part
@@ -12,6 +13,8 @@ from stockupapi.models import Company, Product, CompanyPart
 class CompanyPartSerializer(serializers.ModelSerializer):
 
     class Meta:
+      
+        part = PartSerializer(many=False)
 
         model = CompanyPart
 

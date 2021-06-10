@@ -13,4 +13,5 @@ class Part(models.Model):
     category = ForeignKey("Category", on_delete=SET_NULL, null=True)
     image = ImageField(upload_to='parts', height_field=None, width_field=None, max_length=None, null=True)
 
-    UniqueConstraint(fields=[name, part_number, vendor], name="unique_part")
+    class Meta:
+        constraints = [UniqueConstraint(fields=['name', 'part_number', 'vendor'], name="unique_part")]
