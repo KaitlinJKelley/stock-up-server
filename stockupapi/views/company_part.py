@@ -13,6 +13,7 @@ from stockupapi.models import Company, Product, CompanyPart
 class CompanyPartSerializer(serializers.ModelSerializer):
 
     class Meta:
+      
         part = PartSerializer(many=False)
 
         model = CompanyPart
