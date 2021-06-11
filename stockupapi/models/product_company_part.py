@@ -14,4 +14,5 @@ class ProductPart(models.Model):
     @staticmethod
     def soft_delete(self, product_part):
         product_part.deleted=True
-        return product_part
+        product_part.save()
+

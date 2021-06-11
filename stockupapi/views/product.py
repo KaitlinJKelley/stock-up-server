@@ -97,7 +97,6 @@ class ProductViewSet(ViewSet):
             for product_part in product_parts_to_soft_delete:
                 ProductPart.soft_delete(self, product_part)
 
-                product_part.save()
             # Iterate over all company_part IDs passed from client
             for part in request.data["parts"]:
                 company_part = CompanyPart.objects.get(pk=part["partId"])

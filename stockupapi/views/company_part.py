@@ -1,3 +1,4 @@
+from stockupapi.models.product_company_part import ProductPart
 from .part import PartSerializer
 from stockupapi.models.parts import Part
 from rest_framework import status
@@ -32,7 +33,7 @@ class UserInventoryViewSet(ViewSet):
         company = Company.objects.get(employee__user = request.auth.user)
 
         try:
-            company_part = CompanyPart.objects.get(pk=pk, company=company) 
+            company_part = CompanyPart.objects.get(pk=pk, company=company, deleted=False) 
 
             serializer = CompanyPartSerializer(company_part, context={'request': request}) 
 
@@ -61,6 +62,21 @@ class UserInventoryViewSet(ViewSet):
 
         company_part.save()
 
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
+    
+    def destroy(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        company_part = CompanyPart.objects.get(pk=pk, company=company)
+        company_part.deleted = True
+
+        company_part.save()
+
+        product_parts = ProductPart.objects.filter(company_part=company_part, deleted=False)
+
+        for product_part in product_parts:
+            ProductPart.soft_delete(self, product_part)
+        
         return Response({}, status=status.HTTP_204_NO_CONTENT)
         
 
