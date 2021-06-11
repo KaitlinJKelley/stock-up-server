@@ -83,7 +83,7 @@ class UserInventoryViewSet(ViewSet):
 class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
-        
+
          model = Product
 
          fields = ('id', 'name')
@@ -97,6 +97,4 @@ class CompanyPartSerializer(serializers.ModelSerializer):
 
         model = CompanyPart
 
-        fields = ('id', 'part', 'in_inventory', 'min_required', 'cost',  'products')
-        depth=1
-    
+        fields = ('id', 'part', 'in_inventory', 'min_required', 'cost',  'products')    
