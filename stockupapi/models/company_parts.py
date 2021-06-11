@@ -10,4 +10,10 @@ class CompanyPart(SafeDeleteModel):
     part = ForeignKey("Part", on_delete=DO_NOTHING)
     in_inventory = IntegerField()
     min_required = IntegerField()
-    cost = DecimalField(max_digits=25, decimal_places=2)
+    cost = FloatField()
+
+    @property
+    def round(self):
+        self.cost = round(self.cost, 2)
+
+    # TODO: Consider moving image field here so user's can upload the image of their part
