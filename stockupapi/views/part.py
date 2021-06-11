@@ -35,7 +35,7 @@ class PartDatabaseViewSet(ViewSet):
         # If the client sends a string it should be a new vendor name and include a website url
         elif type(request.data["vendor"]) == str:
             new_vendor = Vendor()
-            new_vendor.name = request.data["vendor"]
+            new_vendor.name = request.data["vendor"].title()
             new_vendor.website = request.data["website"]
 
             new_vendor.save()
