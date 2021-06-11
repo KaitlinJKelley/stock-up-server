@@ -1,8 +1,5 @@
 from .part import PartSerializer
-from django.views.generic.base import View
-from stockupapi.models.product_company_part import ProductPart
 from stockupapi.models.parts import Part
-from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
@@ -30,6 +27,19 @@ class UserInventoryViewSet(ViewSet):
         serializer = CompanyPartSerializer(company_part, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def retrieve(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        try:
+            company_part = CompanyPart.objects.get(pk=pk, company=company)
+
+            serializer = CompanyPartSerializer(company_part, context={'request': request})
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except CompanyPart.DoesNotExist:
+            return Response({"error": "You do not have permission to view this part, or the part may not exist"}, status=status.HTTP_401_UNAUTHORIZED)
         
 
 class CompanyPartSerializer(serializers.ModelSerializer):
