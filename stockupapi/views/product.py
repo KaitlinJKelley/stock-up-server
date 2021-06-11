@@ -1,3 +1,4 @@
+from safedelete.queryset import SafeDeleteQueryset
 from stockupapi.models.product_company_part import ProductPart
 from stockupapi.models.parts import Part
 from rest_framework import status
@@ -7,6 +8,7 @@ from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart
 import os.path
+from safedelete.models import SOFT_DELETE
 
 class ProductViewSet(ViewSet):
 
@@ -73,7 +75,40 @@ class ProductViewSet(ViewSet):
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
         except Product.DoesNotExist:
-            return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)           
+            return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)  
+
+    def update(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        try:
+            product = Product.objects.get(pk=pk, company=company)
+            product.name = request.data["name"]
+
+            product.save()
+
+            product.parts.clear()
+
+            for part in request.data["parts"]:
+                company_part = CompanyPart.objects.get(pk=part["partId"])
+                
+                try:
+                    deleted_product_parts = ProductPart.deleted_objects(self)
+
+                    print()
+                
+                except ProductPart.DoesNotExist:
+
+                    product_part = ProductPart()
+                    product_part.product = product
+                    product_part.company_part = company_part
+                    product_part.amount_used = part["amountUsed"]
+
+                    product_part.save()
+
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+        except Product.DoesNotExist:
+            return Response()
 
 
 class PartSerializer(serializers.ModelSerializer):
@@ -92,7 +127,8 @@ class ProductPartSerializer(serializers.BaseSerializer):
         id = instance.id
         
         # splits the request path to retrieve the id of the product 
-        product = os.path.split(self.context["request"].path)[1]
+        product = int(os.path.split(self.context["request"].path)[1])
+        # TODO: Add try/except to handle ProductPart.DoesNotExist
         product_part = ProductPart.objects.get(company_part=id, product__id=product)
         instance.amount_used = product_part.amount_used
 
