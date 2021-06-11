@@ -26,6 +26,7 @@ from stockupapi.views import *
 router = routers.DefaultRouter(trailing_slash=False)
 router.register("products", ProductViewSet, "product")
 router.register("database", PartDatabaseViewSet, "database")
+router.register("inventory", UserInventoryViewSet, "inventory")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
