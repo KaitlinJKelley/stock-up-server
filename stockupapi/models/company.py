@@ -12,7 +12,7 @@ class Company(models.Model):
     order_schedule = CharField(null=True, max_length=100)
     cat_pref = ForeignKey("Category", null=True, on_delete=SET_NULL)
     logo  = ImageField(upload_to='logos', height_field=None, width_field=None, max_length=None, null=True, blank=True)
-    parts = ManyToManyField("Part", through="CompanyPart", related_name="company_parts")
-    vendor = ManyToManyField("Vendor", related_name="companyvendor")
+    parts = ManyToManyField("Part", through="CompanyPart", related_name="companies")
+    vendor = ManyToManyField("Vendor", related_name="companies")
 
     
