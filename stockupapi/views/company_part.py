@@ -32,14 +32,23 @@ class UserInventoryViewSet(ViewSet):
         company = Company.objects.get(employee__user = request.auth.user)
 
         try:
-            company_part = CompanyPart.objects.get(pk=pk, company=company)
+            company_part = CompanyPart.objects.get(pk=pk, company=company) 
 
-            serializer = CompanyPartSerializer(company_part, context={'request': request})
+            serializer = CompanyPartSerializer(company_part, context={'request': request}) 
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED) 
 
         except CompanyPart.DoesNotExist:
             return Response({"error": "You do not have permission to view this part, or the part may not exist"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    def list(self, request):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        company_parts = CompanyPart.objects.filter(company=company, deleted=False)
+
+        serializer = CompanyPartSerializer(company_parts, many=True, context={'request': request})
+
+        return Response(serializer.data)
         
 
 class CompanyPartSerializer(serializers.ModelSerializer):
@@ -51,3 +60,4 @@ class CompanyPartSerializer(serializers.ModelSerializer):
         model = CompanyPart
 
         fields = '__all__'
+    
