@@ -15,3 +15,4 @@ class Part(models.Model):
 
     class Meta:
         constraints = [UniqueConstraint(fields=['name', 'part_number', 'vendor'], name="unique_part")]
+        ordering = ['name']
