@@ -49,6 +49,19 @@ class UserInventoryViewSet(ViewSet):
         serializer = CompanyPartSerializer(company_parts, many=True, context={'request': request})
 
         return Response(serializer.data)
+    
+    def update(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        company_part = CompanyPart.objects.get(pk=pk, company=company)
+
+        company_part.in_inventory = request.data["inInventory"]
+        company_part.min_required = request.data["minRequired"]
+        company_part.cost = request.data["cost"]
+
+        company_part.save()
+
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
         
 
 class CompanyPartSerializer(serializers.ModelSerializer):
