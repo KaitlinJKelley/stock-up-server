@@ -6,7 +6,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import Company, CompanyPart
+from stockupapi.models import Company, CompanyPart, Product
 
 class UserInventoryViewSet(ViewSet):
     def create(self, request):
@@ -80,13 +80,21 @@ class UserInventoryViewSet(ViewSet):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
         
 
+class ProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+         model = Product
+
+         fields = ('id', 'name')
+
 class CompanyPartSerializer(serializers.ModelSerializer):
 
     part = PartSerializer(many=False)
+    products = ProductSerializer(many=True)
 
     class Meta:
 
         model = CompanyPart
 
-        fields = '__all__'
-    
+        fields = ('id', 'part', 'in_inventory', 'min_required', 'cost',  'products')    
