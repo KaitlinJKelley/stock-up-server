@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.deletion import CASCADE, DO_NOTHING
 from django.db.models.fields import BooleanField, IntegerField, FloatField
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, ManyToManyField
 
 class CompanyPart(models.Model):
     deleted = BooleanField(default=False)
