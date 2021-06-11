@@ -1,4 +1,3 @@
-from safedelete.queryset import SafeDeleteQueryset
 from stockupapi.models.product_company_part import ProductPart
 from stockupapi.models.parts import Part
 from rest_framework import status
@@ -8,7 +7,6 @@ from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import Company, Product, CompanyPart
 import os.path
-from safedelete.models import SOFT_DELETE
 
 class ProductViewSet(ViewSet):
 
@@ -56,6 +54,12 @@ class ProductViewSet(ViewSet):
 
             serializer = ProductSerializer(product, many=False, context={'request': request})
 
+            # Removes empty string where deleted part existed
+            try:
+                serializer.data["parts"].remove("")
+            except ValueError:
+                pass
+
             return Response(serializer.data)
 
         except Product.DoesNotExist:
@@ -86,24 +90,34 @@ class ProductViewSet(ViewSet):
 
             product.save()
 
-            product.parts.clear()
+            # Get all ProductPart objects associated with this product
+            product_parts_to_soft_delete = ProductPart.objects.filter(product=product)
 
+            # Soft delete all ProductPart objects
+            for product_part in product_parts_to_soft_delete:
+                ProductPart.soft_delete(self, product_part)
+
+                product_part.save()
+            # Iterate over all company_part IDs passed from client
             for part in request.data["parts"]:
                 company_part = CompanyPart.objects.get(pk=part["partId"])
                 
                 try:
-                    deleted_product_parts = ProductPart.deleted_objects(self)
+                    # if this company_part has been on this product before
+                    product_part = ProductPart.objects.get(company_part=company_part, product=product)
 
-                    print()
+                    product_part.deleted = False
+
+                    product_part.amount_used = part["amountUsed"]
                 
                 except ProductPart.DoesNotExist:
-
+                    # The company_part has never been added to this product
                     product_part = ProductPart()
                     product_part.product = product
                     product_part.company_part = company_part
                     product_part.amount_used = part["amountUsed"]
 
-                    product_part.save()
+                product_part.save()
 
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
@@ -128,15 +142,18 @@ class ProductPartSerializer(serializers.BaseSerializer):
         
         # splits the request path to retrieve the id of the product 
         product = int(os.path.split(self.context["request"].path)[1])
-        # TODO: Add try/except to handle ProductPart.DoesNotExist
-        product_part = ProductPart.objects.get(company_part=id, product__id=product)
-        instance.amount_used = product_part.amount_used
+        try:
+            product_part = ProductPart.objects.get(company_part=id, product__id=product, deleted=False)
+            instance.amount_used = product_part.amount_used
 
-        return {
-            "id": instance.id,
-            "name": PartSerializer(instance.part).data["name"],
-            "amount_used": instance.amount_used
-        }
+            return {
+                "id": instance.id,
+                "name": PartSerializer(instance.part).data["name"],
+                "amount_used": instance.amount_used
+            }
+        # try till not find a matching ProductPart for company_parts that have been deleted from this product
+        except ProductPart.DoesNotExist:
+            return ""
 
 class CompanyPartSerializer(ProductPartSerializer):
 
@@ -150,7 +167,7 @@ class CompanyPartSerializer(ProductPartSerializer):
         fields = ('id','name','part',)
 
 class ProductSerializer(serializers.ModelSerializer):
-
+    # Will try to serialize all parts on a product, including deleted parts
     parts = CompanyPartSerializer(many=True)
 
     class Meta:
