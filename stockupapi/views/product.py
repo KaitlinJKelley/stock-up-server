@@ -54,6 +54,12 @@ class ProductViewSet(ViewSet):
 
             serializer = ProductSerializer(product, many=False, context={'request': request})
 
+            # Removes empty string where deleted part existed
+            try:
+                serializer.data["parts"].remove("")
+            except ValueError:
+                pass
+
             return Response(serializer.data)
 
         except Product.DoesNotExist:
@@ -73,7 +79,50 @@ class ProductViewSet(ViewSet):
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
         except Product.DoesNotExist:
-            return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)           
+            return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)  
+
+    def update(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        try:
+            product = Product.objects.get(pk=pk, company=company)
+            product.name = request.data["name"]
+
+            product.save()
+
+            # Get all ProductPart objects associated with this product
+            product_parts_to_soft_delete = ProductPart.objects.filter(product=product)
+
+            # Soft delete all ProductPart objects
+            for product_part in product_parts_to_soft_delete:
+                ProductPart.soft_delete(self, product_part)
+
+                product_part.save()
+            # Iterate over all company_part IDs passed from client
+            for part in request.data["parts"]:
+                company_part = CompanyPart.objects.get(pk=part["partId"])
+                
+                try:
+                    # if this company_part has been on this product before
+                    product_part = ProductPart.objects.get(company_part=company_part, product=product)
+
+                    product_part.deleted = False
+
+                    product_part.amount_used = part["amountUsed"]
+                
+                except ProductPart.DoesNotExist:
+                    # The company_part has never been added to this product
+                    product_part = ProductPart()
+                    product_part.product = product
+                    product_part.company_part = company_part
+                    product_part.amount_used = part["amountUsed"]
+
+                product_part.save()
+
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+        except Product.DoesNotExist:
+            return Response()
 
 
 class PartSerializer(serializers.ModelSerializer):
@@ -92,15 +141,19 @@ class ProductPartSerializer(serializers.BaseSerializer):
         id = instance.id
         
         # splits the request path to retrieve the id of the product 
-        product = os.path.split(self.context["request"].path)[1]
-        product_part = ProductPart.objects.get(company_part=id, product__id=product)
-        instance.amount_used = product_part.amount_used
+        product = int(os.path.split(self.context["request"].path)[1])
+        try:
+            product_part = ProductPart.objects.get(company_part=id, product__id=product, deleted=False)
+            instance.amount_used = product_part.amount_used
 
-        return {
-            "id": instance.id,
-            "name": PartSerializer(instance.part).data["name"],
-            "amount_used": instance.amount_used
-        }
+            return {
+                "id": instance.id,
+                "name": PartSerializer(instance.part).data["name"],
+                "amount_used": instance.amount_used
+            }
+        # try till not find a matching ProductPart for company_parts that have been deleted from this product
+        except ProductPart.DoesNotExist:
+            return ""
 
 class CompanyPartSerializer(ProductPartSerializer):
 
@@ -114,7 +167,7 @@ class CompanyPartSerializer(ProductPartSerializer):
         fields = ('id','name','part',)
 
 class ProductSerializer(serializers.ModelSerializer):
-
+    # Will try to serialize all parts on a product, including deleted parts
     parts = CompanyPartSerializer(many=True)
 
     class Meta:
