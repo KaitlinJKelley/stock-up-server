@@ -140,7 +140,10 @@ class ProductPartSerializer(serializers.BaseSerializer):
         id = instance.id
         
         # splits the request path to retrieve the id of the product 
-        product = int(os.path.split(self.context["request"].path)[1])
+        # TODO: Add conditional to handle request for /products 
+        # vs products/n 
+        # vs create (request = /products but should only send 1 product back)
+        product = os.path.split(self.context["request"].path)[1]
         try:
             product_part = ProductPart.objects.get(company_part=id, product__id=product, deleted=False)
             instance.amount_used = product_part.amount_used

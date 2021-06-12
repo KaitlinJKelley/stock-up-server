@@ -47,12 +47,10 @@ class OrderRecViewSet(ViewSet):
 
             # Multiply amount_used of each part by the amount sold of that product
             for product_part in product_parts:
-                amount_used = product_part["amount_used"] * order_rec_product.amount_sold
+                amount_used = product_part.amount_used * order_rec_product.amount_sold
                 product_part.amount_used = amount_used
 
                 product_parts_list.append(product_part)
-
-                print()
 
 
         # Sum any like ProductPart answers (if a part is used on more than one product, add the 2 separate results that were multiplied)
