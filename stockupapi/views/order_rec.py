@@ -31,6 +31,7 @@ class OrderRecViewSet(ViewSet):
         # order_rec.save()
 
         product_parts_list = []
+        company_part_occurrences = []
         # Create new OrderRecProduct and save
         for sale in request.data["sales"]:
             product = Product.objects.get(pk=sale["productId"])
@@ -51,7 +52,13 @@ class OrderRecViewSet(ViewSet):
                 product_part.amount_used = amount_used
 
                 product_parts_list.append(product_part)
-
+                company_part_occurrences.append(product_part.company_part.id)
 
         # Sum any like ProductPart answers (if a part is used on more than one product, add the 2 separate results that were multiplied)
+        # TODO: Consider changing relationship on ERD to use company_part id instead of product_company_part
+        # TODO: Consider combining product_parts_list and company_part_occurrences to:
+            # {
+                # company_part id : [amount, amount, amount], 
+                # company_part id : [amount, amount, amount] 
+            # }
         # Create new OrderRecParts for each ProductPart and total_used
