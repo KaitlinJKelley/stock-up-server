@@ -3,4 +3,5 @@ from .product import ProductViewSet
 from .part import PartDatabaseViewSet
 from .company_part import UserInventoryViewSet
 from .vendor import VendorViewSet
+from .order_rec import OrderRecViewSet
 
