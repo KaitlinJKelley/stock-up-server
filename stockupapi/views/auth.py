@@ -41,14 +41,13 @@ def register_user(request):
         username=req_body['username'],
         email=req_body['email'],
         password=req_body['password'],
-        first_name=req_body['first_name'],
-        last_name=req_body['last_name']
+        first_name=req_body['firstName'],
+        last_name=req_body['lastName']
     )
     # Create the company that user registered 
     company = Company.objects.create(
         company_name = req_body["companyName"],
         ein = req_body["ein"],
-        report_view = req_body["reportView"],
         order_schedule = req_body["orderSchedule"],
         cat_pref = req_body["catPref"],
         logo = None
