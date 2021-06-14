@@ -17,7 +17,7 @@ class ProductViewSet(ViewSet):
 
         serializer = ProductSerializer(products, many=True, context={'request': request})
 
-        return Response(serializer.data["id"], serializer.data["name"])
+        return Response(serializer.data)
     
     def create(self, request):
         # TODO: Add image handling
@@ -30,7 +30,6 @@ class ProductViewSet(ViewSet):
 
         product.save()
         # Create a ProductPart instance for every part the user added when they created the product
-        # TODO: Add products.part_list and append product_part as created; see what that does 
         for part in request.data["parts"]:
             company_part = CompanyPart.objects.get(pk=part["partId"])
             
@@ -139,12 +138,9 @@ class ProductPartSerializer(serializers.BaseSerializer):
         # instance = CompanyPart object
         id = instance.id
         
-        # splits the request path to retrieve the id of the product 
-        # TODO: Add conditional to handle request for /products 
-        # vs products/n 
-        # vs create (request = /products but should only send 1 product back)
-        product = os.path.split(self.context["request"].path)[1]
         try:
+            # splits the request path to retrieve the id of the product
+            product = os.path.split(self.context["request"].path)[1]
             product_part = ProductPart.objects.get(company_part=id, product__id=product, deleted=False)
             instance.amount_used = product_part.amount_used
 
@@ -156,6 +152,12 @@ class ProductPartSerializer(serializers.BaseSerializer):
         # try till not find a matching ProductPart for company_parts that have been deleted from this product
         except ProductPart.DoesNotExist:
             return ""
+        except ValueError:
+            # For GET and POST requests (no pk at the end of these requests)
+            return {
+                "id": instance.id,
+                "name": PartSerializer(instance.part).data["name"]
+            }
 
 class CompanyPartSerializer(ProductPartSerializer):
 
