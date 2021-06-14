@@ -28,6 +28,7 @@ router.register("products", ProductViewSet, "product")
 router.register("database", PartDatabaseViewSet, "database")
 router.register("inventory", UserInventoryViewSet, "inventory")
 router.register("vendors", VendorViewSet, "vendor")
+router.register("units", UnitOfMeasurementViewSet, "unit")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
