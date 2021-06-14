@@ -1,0 +1,1 @@
+[{"model": "stockupapi.productpart", "pk": 1, "fields": {"deleted": false, "product": 1, "company_part": 1, "amount_used": 2}}, {"model": "stockupapi.productpart", "pk": 2, "fields": {"deleted": false, "product": 2, "company_part": 1, "amount_used": 5}}, {"model": "stockupapi.productpart", "pk": 3, "fields": {"deleted": false, "product": 2, "company_part": 2, "amount_used": 3}}]
