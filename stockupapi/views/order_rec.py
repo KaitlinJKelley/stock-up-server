@@ -8,6 +8,14 @@ from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, 
 from rest_framework.decorators import action
 
 class OrderRecViewSet(ViewSet):
+    def list(self, request):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        order_recs = OrderRec.objects.filter(company=company, orderrecpart__date_received__isnull=False).order_by('-date_generated')
+
+        serializer = OrderRecSerializer(order_recs, many=True, context={'request': request})
+
+        return Response(serializer.data)
 
     def create(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
