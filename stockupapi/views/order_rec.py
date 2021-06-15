@@ -130,16 +130,19 @@ class OrderRecViewSet(ViewSet):
 
         order_rec_part = OrderRecPart.objects.get(pk=request.data["recPartId"])
 
-        order_rec_part.part_amount_ordered = request.data["amountOrdered"]
-        order_rec_part.date_ordered = request.data["dateOrdered"]
+        if len(request.data) == 2:
+            order_rec_part.part_amount_ordered = request.data["amountOrdered"]
+            order_rec_part.date_ordered = request.data["dateOrdered"]
+
+            company_part = CompanyPart.objects.get(productpart__orderrecpart=order_rec_part)
+
+            company_part.in_inventory += order_rec_part.part_amount_ordered
+
+            company_part.save()
+        else:
+            order_rec_part.date_received = request.data["dateReceived"]
 
         order_rec_part.save()
-
-        company_part = CompanyPart.objects.get(productpart__orderrecpart=order_rec_part)
-
-        company_part.in_inventory += order_rec_part.part_amount_ordered
-
-        company_part.save()
 
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
