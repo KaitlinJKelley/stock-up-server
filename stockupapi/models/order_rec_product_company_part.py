@@ -9,5 +9,5 @@ class OrderRecPart(models.Model):
     part_amount_to_order = IntegerField(null=False)
     part_amount_ordered = IntegerField(null=True)
     date_ordered = DateField(null=True)
-    received_date = DateField(null=True)
+    date_received = DateField(null=True)
     
