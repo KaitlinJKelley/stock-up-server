@@ -130,7 +130,7 @@ class OrderRecViewSet(ViewSet):
 
         order_rec_part = OrderRecPart.objects.get(pk=request.data["recPartId"])
 
-        if len(request.data) == 2:
+        if len(request.data) == 3:
             order_rec_part.part_amount_ordered = request.data["amountOrdered"]
             order_rec_part.date_ordered = request.data["dateOrdered"]
 
