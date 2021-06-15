@@ -16,6 +16,15 @@ class OrderRecViewSet(ViewSet):
         serializer = OrderRecSerializer(order_recs, many=True, context={'request': request})
 
         return Response(serializer.data)
+    
+    def retrieve(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        order_rec = OrderRec.objects.get(pk=pk, company=company)
+
+        serializer = OrderRecSerializer(order_rec, context={'request': request})
+
+        return Response(serializer.data)
 
     def create(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
