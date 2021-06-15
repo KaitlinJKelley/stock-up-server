@@ -78,9 +78,7 @@ class OrderRecViewSet(ViewSet):
     def recent(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        order_rec = OrderRec.objects.filter(orderrecpart__received_date = None, company=company)[0]
-
-        order_rec_parts = OrderRecPart.objects.filter(order_rec=order_rec)
+        order_rec = OrderRec.objects.filter(company=company).order_by('date_generated')[0]
 
         serializer = OrderRecSerializer(order_rec, context={'request': request})
 
