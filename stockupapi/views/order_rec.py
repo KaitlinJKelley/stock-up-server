@@ -118,11 +118,30 @@ class OrderRecViewSet(ViewSet):
     def recent(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        order_rec = OrderRec.objects.filter(company=company).order_by('date_generated')[0]
+        order_rec = OrderRec.objects.filter(company=company).order_by('-date_generated')[0]
 
         serializer = OrderRecSerializer(order_rec, context={'request': request})
 
         return Response(serializer.data)
+    
+    @action(methods=["post"], detail=False)
+    def change_status(self, request):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        order_rec_part = OrderRecPart.objects.get(pk=request.data["recPartId"])
+
+        order_rec_part.part_amount_ordered = request.data["amountOrdered"]
+        order_rec_part.date_ordered = request.data["dateOrdered"]
+
+        order_rec_part.save()
+
+        company_part = CompanyPart.objects.get(productpart__orderrecpart=order_rec_part)
+
+        company_part.in_inventory += order_rec_part.part_amount_ordered
+
+        company_part.save()
+
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ProductPartSerializer(serializers.ModelSerializer):
