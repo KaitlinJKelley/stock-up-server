@@ -1,12 +1,11 @@
 from stockupapi.models.product_company_part import ProductPart
-from stockupapi.models.parts import Part
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart
-import os.path
+from rest_framework.decorators import action
 
 class OrderRecViewSet(ViewSet):
 
@@ -74,12 +73,53 @@ class OrderRecViewSet(ViewSet):
         serializer = OrderRecSerializer(order_rec, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+    
+    @action(methods=["get"], detail=False)
+    def recent(self, request):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        order_rec = OrderRec.objects.filter(orderrecpart__received_date = None, company=company)[0]
+
+        order_rec_parts = OrderRecPart.objects.filter(order_rec=order_rec)
+
+        serializer = OrderRecSerializer(order_rec, context={'request': request})
+
+        return Response(serializer.data)
+
+
+class ProductPartSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ProductPart
+
+        fields = ['company_part']
+        depth=1
+
+class OrderRecPartSerializer(serializers.ModelSerializer):
+
+    product_part = ProductPartSerializer()
+
+    class Meta:
+
+        model = OrderRecPart
+
+        exclude = ['order_rec']
+
+class ProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = Product
+
+        fields = ['id', 'name']
 
 class OrderRecSerializer(serializers.ModelSerializer):
+
+    orderrecpart_set = OrderRecPartSerializer(many=True)
+    products = ProductSerializer(many=True)
 
     class Meta:
 
         model = OrderRec
 
-        fields = '__all__'
+        fields = ('id', 'date_generated', 'products', 'orderrecpart_set')
