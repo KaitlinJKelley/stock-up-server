@@ -4,7 +4,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart
+from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart, order_rec
 from rest_framework.decorators import action
 
 class OrderRecViewSet(ViewSet):
@@ -74,6 +74,46 @@ class OrderRecViewSet(ViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    def update(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
+
+        if "productId" in request.data[0]:
+            for product in request.data:
+                order_rec_product = OrderRecProduct.objects.get(order_rec_id=pk, product_id=product["productId"])
+
+                original_amount_sold = order_rec_product.amount_sold
+
+                order_rec_product.amount_sold = product["amountSold"]
+
+                order_rec_product.save()
+
+                product_parts = ProductPart.objects.filter(product_id=product["productId"])
+
+                for product_part in product_parts:
+                    # Original part order recommendation 
+                    company_part = CompanyPart.objects.get(productpart=product_part, productpart__product_id=product["productId"])
+                    order_rec_part = OrderRecPart.objects.get(order_rec_id=pk, product_part__company_part_id=company_part.id)
+
+                    new_part_used_for_product = product_part.amount_used * order_rec_product.amount_sold
+                    original_part_used_for_product = product_part.amount_used * original_amount_sold
+
+                    company_part.in_inventory = company_part.in_inventory + original_part_used_for_product - new_part_used_for_product
+                    company_part.save()
+                    
+                    company_part_order_rec = company_part.min_required - company_part.in_inventory
+                    # Negative means the that amount in inventory is higher than required, so no order needed
+                    if company_part_order_rec < 0:
+                        order_rec_part.part_amount_to_order = 0
+                    else:
+                        order_rec_part.part_amount_to_order = company_part_order_rec
+                    order_rec_part.save()
+        # TODO: Remove and return 204 when this works a few more times
+        order_rec = OrderRec.objects.get(pk=pk)
+
+        serializer = OrderRecSerializer(order_rec, context={'request': request})
+
+        return Response(serializer.data)
+
     @action(methods=["get"], detail=False)
     def recent(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
