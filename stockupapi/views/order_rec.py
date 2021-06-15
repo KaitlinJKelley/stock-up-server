@@ -92,7 +92,7 @@ class OrderRecViewSet(ViewSet):
                 for product_part in product_parts:
                     # Original part order recommendation 
                     company_part = CompanyPart.objects.get(productpart=product_part, productpart__product_id=product["productId"])
-                    order_rec_part = OrderRecPart.objects.get(order_rec_id=pk, product_part_company_part=company_part)
+                    order_rec_part = OrderRecPart.objects.get(order_rec_id=pk, product_part__company_part_id=company_part.id)
 
                     new_part_used_for_product = product_part.amount_used * order_rec_product.amount_sold
                     original_part_used_for_product = product_part.amount_used * original_amount_sold
