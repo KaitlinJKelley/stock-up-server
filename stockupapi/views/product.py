@@ -129,7 +129,8 @@ class PartSerializer(serializers.ModelSerializer):
       
         model = Part
 
-        fields = ('name',) 
+        fields = ('name', 'unit_of_measurement')
+        depth=1 
 
 # Custom serializer
 class ProductPartSerializer(serializers.BaseSerializer):
@@ -147,6 +148,7 @@ class ProductPartSerializer(serializers.BaseSerializer):
             return {
                 "id": instance.id,
                 "name": PartSerializer(instance.part).data["name"],
+                "unit_of_measurement": PartSerializer(instance.part).data["unit_of_measurement"],
                 "amount_used": instance.amount_used
             }
         # try till not find a matching ProductPart for company_parts that have been deleted from this product
