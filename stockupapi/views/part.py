@@ -27,16 +27,17 @@ class PartDatabaseViewSet(ViewSet):
         new_part.part_number = request.data["partNumber"]
         new_part.unit_of_measurement = uom
         # If the client sends an integer it should be a vendor Id
-        if type(request.data["vendor"]) == int:
+        try: 
             vendor = Vendor.objects.get(pk=request.data["vendor"])
             new_part.vendor = vendor
 
             new_part.save()
         # If the client sends a string it should be a new vendor name and include a website url
-        elif type(request.data["vendor"]) == str:
+        except ValueError: 
+            type(request.data["vendor"]) == str
             new_vendor = Vendor()
             new_vendor.name = request.data["vendor"].title()
-            new_vendor.website = request.data["website"]
+            new_vendor.website = request.data["vendorWebsite"]
 
             new_vendor.save()
 
@@ -64,14 +65,17 @@ class PartDatabaseViewSet(ViewSet):
 
     @action(methods=["post"], detail=False)
     def check_part(self, request):
-        vendor = Vendor.objects.get(pk=request.data["vendor"])
         
         try:
+            vendor = Vendor.objects.get(pk=request.data["vendor"])
             Part.objects.get(vendor=vendor, name=request.data["name"].lower(), part_number=request.data["partNumber"])
 
             return Response({"exists": True})
 
         except Part.DoesNotExist:
+            return Response({"exists": False})
+        
+        except ValueError:
             return Response({"exists": False})
 
 

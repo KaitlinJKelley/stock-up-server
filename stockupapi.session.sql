@@ -1,1 +1,0 @@
-delete from django_migrations where app = "stockupapi"
