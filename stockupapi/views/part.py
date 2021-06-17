@@ -33,11 +33,11 @@ class PartDatabaseViewSet(ViewSet):
 
             new_part.save()
         # If the client sends a string it should be a new vendor name and include a website url
-        except Vendor.DoesNotExist: 
+        except ValueError: 
             type(request.data["vendor"]) == str
             new_vendor = Vendor()
             new_vendor.name = request.data["vendor"].title()
-            new_vendor.website = request.data["website"]
+            new_vendor.website = request.data["vendorWebsite"]
 
             new_vendor.save()
 
@@ -73,6 +73,9 @@ class PartDatabaseViewSet(ViewSet):
             return Response({"exists": True})
 
         except Part.DoesNotExist:
+            return Response({"exists": False})
+        
+        except ValueError:
             return Response({"exists": False})
 
 
