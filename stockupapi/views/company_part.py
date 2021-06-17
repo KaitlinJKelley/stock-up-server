@@ -12,13 +12,19 @@ class UserInventoryViewSet(ViewSet):
     def create(self, request):
         # TODO: Handle image upload
         company = Company.objects.get(employee__user = request.auth.user)
+        company_part = None
 
-        part = Part.objects.get(pk=request.data["partId"])
-        
-        # Create a company_part (adds the part to the company's inventory)
-        company_part = CompanyPart()
-        company_part.company = company
-        company_part.part = part
+        try:
+            company_part = CompanyPart.objects.get(part_id=request.data["partId"], company=company)
+            company_part.deleted = False
+        except CompanyPart.DoesNotExist:
+
+            # Create a company_part (adds the part to the company's inventory)
+            part = Part.objects.get(pk=request.data["partId"])
+            company_part = CompanyPart()
+            company_part.company = company
+            company_part.part = part
+
         company_part.in_inventory = request.data["inInventory"]
         company_part.min_required = request.data["minRequired"]
         company_part.cost = request.data["cost"]
