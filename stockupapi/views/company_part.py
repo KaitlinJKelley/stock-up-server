@@ -105,7 +105,7 @@ class ProductSerializer(serializers.ModelSerializer):
          model = Product
 
          fields = ('id', 'name')
-# TODO: Serialize to get orderrecpart
+
 class CompanyPartSerializer(serializers.ModelSerializer):
 
     part = PartSerializer(many=False)
