@@ -5,13 +5,14 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart, order_rec
-from rest_framework.decorators import action
+from rest_framework.decorators import action 
+import os.path
 
 class OrderRecViewSet(ViewSet):
     def list(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        order_recs = OrderRec.objects.filter(company=company, orderrecpart__date_received__isnull=False).order_by('-date_generated')
+        order_recs = OrderRec.objects.filter(company=company).order_by('-date_generated')[1:]
 
         serializer = OrderRecSerializer(order_recs, many=True, context={'request': request})
 
@@ -31,6 +32,8 @@ class OrderRecViewSet(ViewSet):
         # Create new OrderRec and save
         order_rec = OrderRec()
         order_rec.company = company
+        order_rec.sales_start_date = request.data["salesStartDate"]
+        order_rec.sales_end_date = request.data["salesEndDate"]
 
         order_rec.save()
 
@@ -170,7 +173,7 @@ class ProductPartSerializer(serializers.ModelSerializer):
         model = ProductPart
 
         fields = ['company_part']
-        depth=1
+        depth=2
 
 class OrderRecPartSerializer(serializers.ModelSerializer):
 
@@ -182,21 +185,40 @@ class OrderRecPartSerializer(serializers.ModelSerializer):
 
         exclude = ['order_rec']
 
-class ProductSerializer(serializers.ModelSerializer):
+class OrderRecProductSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+        try:
+            order_rec_id = os.path.split(self.context["request"].path)[1]
 
+            order_rec_product = OrderRecProduct.objects.get(order_rec_id=order_rec_id, product_id=instance.id)
+
+            return {
+                "id": instance.id,
+                "name": instance.name,
+                "amount_sold": order_rec_product.amount_sold
+            }
+           
+        except:
+            return {
+                "id": instance.id,
+                "name": instance.name,
+            }
+
+class ProductSerializer(OrderRecProductSerializer):
+    
     class Meta:
 
         model = Product
 
-        fields = ['id', 'name']
+        fields = (OrderRecProductSerializer(),)
 
 class OrderRecSerializer(serializers.ModelSerializer):
 
     orderrecpart_set = OrderRecPartSerializer(many=True)
-    products = ProductSerializer(many=True)
+    products = ProductSerializer(many=True, context={'order_rec': OrderRec})
 
     class Meta:
 
         model = OrderRec
 
-        fields = ('id', 'date_generated', 'products', 'orderrecpart_set')
+        fields = ('id', 'date_generated', 'sales_start_date', 'sales_end_date', 'products', 'orderrecpart_set')
