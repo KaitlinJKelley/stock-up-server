@@ -11,7 +11,7 @@ class OrderRecViewSet(ViewSet):
     def list(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        order_recs = OrderRec.objects.filter(company=company, orderrecpart__date_received__isnull=False).order_by('-date_generated')
+        order_recs = OrderRec.objects.filter(company=company).order_by('-date_generated')[1:]
 
         serializer = OrderRecSerializer(order_recs, many=True, context={'request': request})
 
@@ -31,6 +31,8 @@ class OrderRecViewSet(ViewSet):
         # Create new OrderRec and save
         order_rec = OrderRec()
         order_rec.company = company
+        order_rec.sales_start_date = request.data["salesStartDate"]
+        order_rec.sales_end_date = request.data["salesEndDate"]
 
         order_rec.save()
 
@@ -199,4 +201,4 @@ class OrderRecSerializer(serializers.ModelSerializer):
 
         model = OrderRec
 
-        fields = ('id', 'date_generated', 'products', 'orderrecpart_set')
+        fields = ('id', 'date_generated', 'sales_start_date', 'sales_end_date', 'products', 'orderrecpart_set')
