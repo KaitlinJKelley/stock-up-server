@@ -10,3 +10,4 @@ class CompanyPart(models.Model):
     in_inventory = IntegerField()
     min_required = IntegerField()
     cost = FloatField()
+    recent_order_rec_part = None
