@@ -6,7 +6,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import Company, CompanyPart, Product
+from stockupapi.models import Company, CompanyPart, Product, OrderRecPart
 
 class UserInventoryViewSet(ViewSet):
     def create(self, request):
@@ -40,6 +40,10 @@ class UserInventoryViewSet(ViewSet):
 
         try:
             company_part = CompanyPart.objects.get(pk=pk, company=company, deleted=False) 
+
+            recent_order_rec_part = OrderRecPart.objects.filter(product_part__company_part_id=company_part.id).order_by('-order_rec_id')[0]
+
+            company_part.recent_order_rec_part = recent_order_rec_part
 
             serializer = CompanyPartSerializer(company_part, context={'request': request}) 
 
@@ -86,6 +90,14 @@ class UserInventoryViewSet(ViewSet):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
         
 
+class OrderRecPartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = OrderRecPart
+
+        fields = '__all__'
+
 class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -93,14 +105,15 @@ class ProductSerializer(serializers.ModelSerializer):
          model = Product
 
          fields = ('id', 'name')
-
+# TODO: Serialize to get orderrecpart
 class CompanyPartSerializer(serializers.ModelSerializer):
 
     part = PartSerializer(many=False)
     products = ProductSerializer(many=True)
+    recent_order_rec_part = OrderRecPartSerializer()
 
     class Meta:
 
         model = CompanyPart
 
-        fields = ('id', 'part', 'in_inventory', 'min_required', 'cost',  'products')    
+        fields = ('id', 'part', 'in_inventory', 'min_required', 'cost',  'products', 'recent_order_rec_part')    
