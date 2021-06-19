@@ -4,7 +4,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart, order_rec
+from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart, Part
 from rest_framework.decorators import action 
 import os.path
 
@@ -100,10 +100,10 @@ class OrderRecViewSet(ViewSet):
         if "productId" in request.data[0]:
             for product in request.data:
                 order_rec_product = OrderRecProduct.objects.get(order_rec_id=pk, product_id=product["productId"])
-
+                
                 original_amount_sold = order_rec_product.amount_sold
 
-                order_rec_product.amount_sold = product["amountSold"]
+                order_rec_product.amount_sold = int(product["amountSold"])
 
                 order_rec_product.save()
 
@@ -167,13 +167,31 @@ class OrderRecViewSet(ViewSet):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
+class PartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Part
+
+        fields = '__all__'
+        depth=1
+
+class CompanyPartSerializer(serializers.ModelSerializer):
+
+    part = PartSerializer()
+
+    class Meta:
+        model = CompanyPart
+
+        fields = '__all__'
+
 class ProductPartSerializer(serializers.ModelSerializer):
     
+    company_part = CompanyPartSerializer()
+
     class Meta:
         model = ProductPart
 
-        fields = ['company_part']
-        depth=2
+        fields = ("company_part",)
 
 class OrderRecPartSerializer(serializers.ModelSerializer):
 
