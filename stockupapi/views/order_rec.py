@@ -154,12 +154,13 @@ class OrderRecViewSet(ViewSet):
             order_rec_part.part_amount_ordered = request.data["amountOrdered"]
             order_rec_part.date_ordered = request.data["dateOrdered"]
 
+        else:
             company_part = CompanyPart.objects.get(productpart__orderrecpart=order_rec_part)
 
             company_part.in_inventory += order_rec_part.part_amount_ordered
 
             company_part.save()
-        else:
+
             order_rec_part.date_received = request.data["dateReceived"]
 
         order_rec_part.save()
