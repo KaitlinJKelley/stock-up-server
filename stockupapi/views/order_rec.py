@@ -100,10 +100,10 @@ class OrderRecViewSet(ViewSet):
         if "productId" in request.data[0]:
             for product in request.data:
                 order_rec_product = OrderRecProduct.objects.get(order_rec_id=pk, product_id=product["productId"])
-
+                
                 original_amount_sold = order_rec_product.amount_sold
 
-                order_rec_product.amount_sold = product["amountSold"]
+                order_rec_product.amount_sold = int(product["amountSold"])
 
                 order_rec_product.save()
 
