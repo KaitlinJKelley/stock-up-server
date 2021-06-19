@@ -46,7 +46,7 @@ class OrderRecViewSet(ViewSet):
             order_rec_product = OrderRecProduct()
             order_rec_product.order_rec = order_rec
             order_rec_product.product = product
-            order_rec_product.amount_sold = sale["amountSold"]
+            order_rec_product.amount_sold = int(sale["amountSold"])
 
             order_rec_product.save()
 
