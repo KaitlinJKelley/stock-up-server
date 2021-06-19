@@ -4,7 +4,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart, order_rec
+from stockupapi.models import OrderRec, OrderRecProduct, OrderRecPart, Company, Product, CompanyPart, Part
 from rest_framework.decorators import action 
 import os.path
 
@@ -167,13 +167,31 @@ class OrderRecViewSet(ViewSet):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
+class PartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Part
+
+        fields = '__all__'
+        depth=1
+
+class CompanyPartSerializer(serializers.ModelSerializer):
+
+    part = PartSerializer()
+
+    class Meta:
+        model = CompanyPart
+
+        fields = '__all__'
+
 class ProductPartSerializer(serializers.ModelSerializer):
     
+    company_part = CompanyPartSerializer()
+
     class Meta:
         model = ProductPart
 
-        fields = ['company_part']
-        depth=2
+        fields = ("company_part",)
 
 class OrderRecPartSerializer(serializers.ModelSerializer):
 
