@@ -138,11 +138,15 @@ class OrderRecViewSet(ViewSet):
     def recent(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        order_rec = OrderRec.objects.filter(company=company).order_by('-date_generated')[0]
+        try:
+            order_rec = OrderRec.objects.filter(company=company).order_by('-date_generated')[0]
 
-        serializer = OrderRecSerializer(order_rec, context={'request': request})
+            serializer = OrderRecSerializer(order_rec, context={'request': request})
+            
+            return Response(serializer.data)
+        except IndexError:
+            return Response({'error': 'no order rec found'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(serializer.data)
     
     @action(methods=["post"], detail=False)
     def change_status(self, request):
