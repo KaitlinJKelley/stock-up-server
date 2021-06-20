@@ -42,9 +42,12 @@ class UserInventoryViewSet(ViewSet):
         try:
             company_part = CompanyPart.objects.get(pk=pk, company=company, deleted=False) 
 
-            recent_order_rec_part = OrderRecPart.objects.filter(product_part__company_part_id=company_part.id).order_by('-order_rec_id')[0]
-            
-            company_part.recent_order_rec_part = recent_order_rec_part
+            try:
+                recent_order_rec_part = OrderRecPart.objects.filter(product_part__company_part_id=company_part.id).order_by('-order_rec_id')[0]
+                
+                company_part.recent_order_rec_part = recent_order_rec_part
+            except IndexError:
+                pass
 
             serializer = CompanyPartSerializer(company_part, context={'request': request}) 
 
