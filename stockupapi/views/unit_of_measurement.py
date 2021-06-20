@@ -12,16 +12,6 @@ class UnitOfMeasurementViewSet(ViewSet):
 
         return Response(serializer.data)
 
-    def create(self, request):
-        uom = UnitOfMeasurement()
-        uom.label = request.data["label"]
-
-        uom.save()
-
-        serializer = UOMSerializer(uom, context={'request': request})
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 class UOMSerializer(serializers.ModelSerializer):
 
     class Meta:
