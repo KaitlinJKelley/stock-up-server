@@ -15,6 +15,7 @@ class UserInventoryViewSet(ViewSet):
         company_part = None
 
         try:
+            # If the user has had this part in inventory before, undelete it
             company_part = CompanyPart.objects.get(part_id=request.data["partId"], company=company)
             company_part.deleted = False
         except CompanyPart.DoesNotExist:
@@ -24,7 +25,7 @@ class UserInventoryViewSet(ViewSet):
             company_part = CompanyPart()
             company_part.company = company
             company_part.part = part
-
+        
         company_part.in_inventory = request.data["inInventory"]
         company_part.min_required = request.data["minRequired"]
         company_part.cost = request.data["cost"]
@@ -42,7 +43,7 @@ class UserInventoryViewSet(ViewSet):
             company_part = CompanyPart.objects.get(pk=pk, company=company, deleted=False) 
 
             recent_order_rec_part = OrderRecPart.objects.filter(product_part__company_part_id=company_part.id).order_by('-order_rec_id')[0]
-
+            
             company_part.recent_order_rec_part = recent_order_rec_part
 
             serializer = CompanyPartSerializer(company_part, context={'request': request}) 
@@ -85,6 +86,7 @@ class UserInventoryViewSet(ViewSet):
         product_parts = ProductPart.objects.filter(company_part=company_part, deleted=False)
 
         for product_part in product_parts:
+            # Marks product as deleted so it's hidden from the user but still accessible for reports
             ProductPart.soft_delete(self, product_part)
         
         return Response({}, status=status.HTTP_204_NO_CONTENT)
