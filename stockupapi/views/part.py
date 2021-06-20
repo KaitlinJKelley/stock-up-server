@@ -23,30 +23,36 @@ class PartDatabaseViewSet(ViewSet):
 
     def create(self, request):
         # TODO: Handle image upload
-        uom = UnitOfMeasurement.objects.get(pk=request.data["unitOfMeasurement"])
         # Add the new part to the Part Databas (all parts added by any user)
         new_part = Part()
         new_part.name = request.data["name"]
         new_part.part_number = request.data["partNumber"]
-        new_part.unit_of_measurement = uom
         # If the client sends an integer it should be a vendor Id
         try: 
             vendor = Vendor.objects.get(pk=request.data["vendor"])
             new_part.vendor = vendor
 
-            new_part.save()
         # If the client sends a string it should be a new vendor name and include a website url
         except ValueError: 
-            type(request.data["vendor"]) == str
             new_vendor = Vendor()
             new_vendor.name = request.data["vendor"].title()
             new_vendor.website = request.data["vendorWebsite"]
-
             new_vendor.save()
 
             new_part.vendor = new_vendor
+        
+        try:
+            uom = UnitOfMeasurement.objects.get(pk=request.data["unitOfMeasurement"])
 
-            new_part.save()
+            new_part.unit_of_measurement = uom
+        except ValueError:
+            new_uom = UnitOfMeasurement()
+            new_uom.label = request.data["unitOfMeasurement"]
+            new_uom.save()
+
+            new_part.unit_of_measurement = new_uom
+
+        new_part.save()
 
         serializer = PartSerializer(new_part, many=False, context={'request': request})
         # Get the company that the user creating the part belongs to
