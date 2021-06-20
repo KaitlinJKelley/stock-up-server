@@ -48,8 +48,8 @@ def register_user(request):
     company = Company.objects.create(
         company_name = req_body["companyName"],
         ein = req_body["ein"],
-        order_schedule = req_body["orderSchedule"],
-        cat_pref = req_body["catPref"],
+        # order_schedule = req_body["orderSchedule"],
+        # cat_pref = req_body["catPref"],
         logo = None
     )
 
