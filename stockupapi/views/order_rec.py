@@ -87,7 +87,7 @@ class OrderRecViewSet(ViewSet):
 
             # Negative means the that amount in inventory is higher than required, so no order needed
             if part_order_rec <= 0:
-                part_order_rec = 0
+                order_rec_part.part_amount_to_order = 0
                 order_rec_part.date_ordered = '2000-01-01'
                 order_rec_part.date_received = '2000-01-01'
 
