@@ -109,31 +109,37 @@ class OrderRecViewSet(ViewSet):
                 order_rec_product.amount_sold = int(product["amountSold"])
 
                 order_rec_product.save()
-
-                product_parts = ProductPart.objects.filter(product_id=product["productId"])
-
-                for product_part in product_parts:
-                    # Original part order recommendation 
-                    company_part = CompanyPart.objects.get(productpart=product_part, productpart__product_id=product["productId"])
-                    order_rec_part = OrderRecPart.objects.get(order_rec_id=pk, product_part__company_part_id=company_part.id)
-
-                    new_part_used_for_product = product_part.amount_used * order_rec_product.amount_sold
-                    original_part_used_for_product = product_part.amount_used * original_amount_sold
-
-                    company_part.in_inventory = company_part.in_inventory + original_part_used_for_product - new_part_used_for_product
-                    company_part.save()
                     
-                    company_part_order_rec = company_part.min_required - company_part.in_inventory
-                    # Negative means the that amount in inventory is higher than required, so no order needed
-                    if company_part_order_rec <= 0:
-                        order_rec_part.part_amount_to_order = 0
-                        order_rec_part.date_ordered = '2000-01-01'
-                        order_rec_part.date_received = '2000-01-01'
-                    else:
-                        order_rec_part.part_amount_to_order = company_part_order_rec
-                        order_rec_part.date_ordered = None
-                        order_rec_part.date_received = None
-                    order_rec_part.save()
+                recent_rec = OrderRec.objects.filter(company=company).order_by('-date_generated')[0]
+
+                if recent_rec.id == int(pk):
+                    product_parts = ProductPart.objects.filter(product_id=product["productId"])
+
+                    for product_part in product_parts:
+                        # Original part order recommendation 
+                        company_part = CompanyPart.objects.get(productpart=product_part, productpart__product_id=product["productId"])
+                        order_rec_part = OrderRecPart.objects.get(order_rec_id=pk, product_part__company_part_id=company_part.id)
+
+                        new_part_used_for_product = product_part.amount_used * order_rec_product.amount_sold
+                        original_part_used_for_product = product_part.amount_used * original_amount_sold
+
+                        company_part.in_inventory = company_part.in_inventory + original_part_used_for_product - new_part_used_for_product
+                        company_part.save()
+                        
+                        company_part_order_rec = company_part.min_required - company_part.in_inventory
+
+
+                        # Negative means the that amount in inventory is higher than required, so no order needed
+                        if company_part_order_rec <= 0:
+                            order_rec_part.part_amount_to_order = 0
+                            if order_rec_part.date_ordered == None:
+                                order_rec_part.date_ordered = '2000-01-01'
+                                order_rec_part.date_received = '2000-01-01'
+                        else:
+                            order_rec_part.part_amount_to_order = company_part_order_rec
+                            order_rec_part.date_ordered = None
+                            order_rec_part.date_received = None
+                        order_rec_part.save()
         # TODO: Remove and return 204 when this works a few more times
         order_rec = OrderRec.objects.get(pk=pk)
 

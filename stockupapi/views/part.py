@@ -77,7 +77,7 @@ class PartDatabaseViewSet(ViewSet):
         
         try:
             vendor = Vendor.objects.get(pk=request.data["vendor"])
-            Part.objects.get(vendor=vendor, name=request.data["name"].lower(), part_number=request.data["partNumber"])
+            Part.objects.get(vendor=vendor, name=request.data["name"].title(), part_number=request.data["partNumber"])
 
             return Response({"exists": True})
 
