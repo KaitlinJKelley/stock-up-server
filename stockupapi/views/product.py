@@ -55,7 +55,8 @@ class ProductViewSet(ViewSet):
 
             # Removes empty string where deleted part existed
             try:
-                serializer.data["parts"].remove("")
+                while "" in serializer.data["parts"]:
+                    serializer.data["parts"].remove("")
             except ValueError:
                 pass
 
