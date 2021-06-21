@@ -76,9 +76,6 @@ class OrderRecViewSet(ViewSet):
             remaining_inventory = company_part.in_inventory - part["company_part_used"]
             # Compare to min required
             part_order_rec = company_part.min_required - remaining_inventory
-            # Negative means the that amount in inventory is higher than required, so no order needed
-            if part_order_rec < 0:
-                part_order_rec = 0
             # Save company_part with new inventory amount
             company_part.in_inventory = remaining_inventory
             company_part.save()
@@ -87,6 +84,12 @@ class OrderRecViewSet(ViewSet):
             order_rec_part.order_rec = order_rec
             order_rec_part.product_part_id = part["product_part_id"]
             order_rec_part.part_amount_to_order = part_order_rec
+
+            # Negative means the that amount in inventory is higher than required, so no order needed
+            if part_order_rec <= 0:
+                part_order_rec = 0
+                order_rec_part.date_ordered = '2000-01-01'
+                order_rec_part.date_received = '2000-01-01'
 
             order_rec_part.save()
 
@@ -122,10 +125,14 @@ class OrderRecViewSet(ViewSet):
                     
                     company_part_order_rec = company_part.min_required - company_part.in_inventory
                     # Negative means the that amount in inventory is higher than required, so no order needed
-                    if company_part_order_rec < 0:
+                    if company_part_order_rec <= 0:
                         order_rec_part.part_amount_to_order = 0
+                        order_rec_part.date_ordered = '2000-01-01'
+                        order_rec_part.date_received = '2000-01-01'
                     else:
                         order_rec_part.part_amount_to_order = company_part_order_rec
+                        order_rec_part.date_ordered = None
+                        order_rec_part.date_received = None
                     order_rec_part.save()
         # TODO: Remove and return 204 when this works a few more times
         order_rec = OrderRec.objects.get(pk=pk)
