@@ -32,12 +32,21 @@ class ProductViewSet(ViewSet):
         # Create a ProductPart instance for every part the user added when they created the product
         for part in request.data["parts"]:
             company_part = CompanyPart.objects.get(pk=part["partId"])
-            
-            product_part = ProductPart()
 
-            product_part.product = product
-            product_part.company_part = company_part
-            product_part.amount_used = part["amountUsed"]
+            try:
+                # if this company_part has been on this product before
+                product_part = ProductPart.objects.get(company_part=company_part, product=product)
+
+                product_part.deleted = False
+
+                product_part.amount_used = part["amountUsed"]
+                
+            except ProductPart.DoesNotExist:
+                # The company_part has never been added to this product
+                product_part = ProductPart()
+                product_part.product = product
+                product_part.company_part = company_part
+                product_part.amount_used = part["amountUsed"]
 
             product_part.save()
 

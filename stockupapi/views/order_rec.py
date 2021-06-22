@@ -51,7 +51,7 @@ class OrderRecViewSet(ViewSet):
             order_rec_product.save()
 
             # Get ProductParts for each product
-            product_parts = ProductPart.objects.filter(product=product)
+            product_parts = ProductPart.objects.filter(product=product, deleted=False)
 
             # Multiply amount_used of each part by the amount sold of that product
             for product_part in product_parts:
