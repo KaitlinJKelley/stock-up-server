@@ -51,6 +51,10 @@ class UserInventoryViewSet(ViewSet):
 
             serializer = CompanyPartSerializer(company_part, context={'request': request}) 
 
+            for product in serializer.data["products"]:
+                if product["deleted"] == True:
+                    serializer.data["products"].remove(product)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED) 
 
         except CompanyPart.DoesNotExist:
@@ -109,7 +113,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
          model = Product
 
-         fields = ('id', 'name')
+         fields = ('id', 'name', 'deleted')
 
 class CompanyPartSerializer(serializers.ModelSerializer):
 

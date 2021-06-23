@@ -13,7 +13,7 @@ class ProductViewSet(ViewSet):
     def list(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        products = Product.objects.filter(company=company)
+        products = Product.objects.filter(company=company, deleted=False)
 
         serializer = ProductSerializer(products, many=True, context={'request': request})
 
@@ -23,21 +23,33 @@ class ProductViewSet(ViewSet):
         # TODO: Add image handling
 
         company = Company.objects.get(employee__user = request.auth.user)
-
-        product = Product()
-        product.company = company
-        product.name = request.data["name"]
+        try:
+            product = Product.objects.get(company=company, name=request.data["name"])
+            product.deleted=False
+        except Product.DoesNotExist:
+            product = Product()
+            product.company = company
+            product.name = request.data["name"]
 
         product.save()
         # Create a ProductPart instance for every part the user added when they created the product
         for part in request.data["parts"]:
             company_part = CompanyPart.objects.get(pk=part["partId"])
-            
-            product_part = ProductPart()
 
-            product_part.product = product
-            product_part.company_part = company_part
-            product_part.amount_used = part["amountUsed"]
+            try:
+                # if this company_part has been on this product before
+                product_part = ProductPart.objects.get(company_part=company_part, product=product)
+
+                product_part.deleted = False
+
+                product_part.amount_used = part["amountUsed"]
+                
+            except ProductPart.DoesNotExist:
+                # The company_part has never been added to this product
+                product_part = ProductPart()
+                product_part.product = product
+                product_part.company_part = company_part
+                product_part.amount_used = part["amountUsed"]
 
             product_part.save()
 
@@ -49,7 +61,7 @@ class ProductViewSet(ViewSet):
         company = Company.objects.get(employee__user = request.auth.user)
 
         try:
-            product = Product.objects.get(pk=pk, company=company)
+            product = Product.objects.get(pk=pk, company=company, deleted=False)
 
             serializer = ProductSerializer(product, many=False, context={'request': request})
 
@@ -72,7 +84,9 @@ class ProductViewSet(ViewSet):
             product = Product.objects.get(pk=pk, company=company)
 
             # soft delete
-            product.delete()
+            product.deleted = True
+            
+            product.save()
 
             # TODO: Consider deleting associated ProductParts
 
