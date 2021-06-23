@@ -113,7 +113,7 @@ class OrderRecViewSet(ViewSet):
                 recent_rec = OrderRec.objects.filter(company=company).order_by('-date_generated')[0]
 
                 if recent_rec.id == int(pk):
-                    product_parts = ProductPart.objects.filter(product_id=product["productId"])
+                    product_parts = ProductPart.objects.filter(product_id=product["productId"], deleted=False)
 
                     for product_part in product_parts:
                         # Original part order recommendation 
@@ -137,8 +137,11 @@ class OrderRecViewSet(ViewSet):
                                 order_rec_part.date_received = '2000-01-01'
                         else:
                             order_rec_part.part_amount_to_order = company_part_order_rec
-                            order_rec_part.date_ordered = None
-                            order_rec_part.date_received = None
+                            # Prevents removal of good date if user changes sales after ordering
+                            if order_rec_part.date_ordered == '2000-01-01':
+                                order_rec_part.date_ordered = None
+                                order_rec_part.date_received = None
+                        
                         order_rec_part.save()
         # TODO: Remove and return 204 when this works a few more times
         order_rec = OrderRec.objects.get(pk=pk)
