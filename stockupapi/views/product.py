@@ -24,7 +24,7 @@ class ProductViewSet(ViewSet):
 
         company = Company.objects.get(employee__user = request.auth.user)
         try:
-            product = Product.objects.get(company=company, product_name=request.data["name"])
+            product = Product.objects.get(company=company, name=request.data["name"])
             product.deleted=False
         except Product.DoesNotExist:
             product = Product()
@@ -85,6 +85,8 @@ class ProductViewSet(ViewSet):
 
             # soft delete
             product.deleted = True
+            
+            product.save()
 
             # TODO: Consider deleting associated ProductParts
 
