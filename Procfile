@@ -1,0 +1,1 @@
+web: gunicorn stockup.wsgi --log-file -

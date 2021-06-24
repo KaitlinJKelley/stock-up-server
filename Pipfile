@@ -13,6 +13,8 @@ pylint-django = "*"
 django-safedelete = "*"
 pillow = "*"
 python-decouple = "*"
+gunicorn = "*"
+django-on-heroku = "*"
 
 [dev-packages]
 
