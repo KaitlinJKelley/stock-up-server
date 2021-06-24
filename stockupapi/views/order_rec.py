@@ -161,7 +161,7 @@ class OrderRecViewSet(ViewSet):
             
             return Response(serializer.data)
         except IndexError:
-            return Response({'error': 'no order rec found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'no order rec found'})
 
     
     @action(methods=["post"], detail=False)
