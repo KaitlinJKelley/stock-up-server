@@ -10,12 +10,13 @@ from stockupapi.models import CompanyPart
 from stockupapi.models import Company
 from rest_framework.decorators import action
 
+
 class PartDatabaseViewSet(ViewSet):
     def list(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
-        # Should return all part EXCEPT the parts that have been added to the company's inventory AND are not marked deleted
-        all_parts = Part.objects.exclude(companies=company, companypart__deleted=False)
+        # Should return all parts EXCEPT the parts that have been added to the company's inventory AND are not marked deleted
+        all_parts = Part.objects.exclude(companypart__company=company, companypart__deleted=False) 
 
         serializer = PartSerializer(all_parts, many=True, context={'request': request})
 
