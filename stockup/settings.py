@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'stockupapi',
-    'safedelete',
 ]
 
 REST_FRAMEWORK = {
