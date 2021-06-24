@@ -7,32 +7,5 @@
             "company_id": 1,
             "user": 1
         }
-    },
-    {
-        "model": "stockupapi.employee",
-        "pk": 2,
-        "fields": {
-            "employee_id": 3787,
-            "company_id": 1,
-            "user": 2
-        }
-    },
-    {
-        "model": "stockupapi.employee",
-        "pk": 3,
-        "fields": {
-            "employee_id": 3788,
-            "company_id": 2,
-            "user": 3
-        }
-    },
-    {
-        "model": "stockupapi.employee",
-        "pk": 4,
-        "fields": {
-            "employee_id": 3789,
-            "company_id": 2,
-            "user": 4
-        }
     }
 ]
