@@ -9,16 +9,52 @@ from rest_framework import status
 from stockupapi.models import CompanyPart
 from stockupapi.models import Company
 from rest_framework.decorators import action
-
+from stockupapi.views.connection import Connection
+import sqlite3
+import json
 
 class PartDatabaseViewSet(ViewSet):
     def list(self, request):
         company = Company.objects.get(employee__user = request.auth.user)
 
         # Should return all parts EXCEPT the parts that have been added to the company's inventory AND are not marked deleted
-        all_parts = Part.objects.exclude(companypart__company=company, companypart__deleted=False) 
+        all_parts = []
 
-        serializer = PartSerializer(all_parts, many=True, context={'request': request})
+        with sqlite3.connect(Connection.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            db_cursor = conn.cursor()
+
+            db_cursor.execute(""" 
+            select 
+                p.id, 
+                p.name, 
+                p.part_number, 
+                p.unit_of_measurement_id,
+                cp.part_id,
+                cp.company_id,
+                p.vendor_id,
+                cp.deleted
+            from stockupapi_part p
+            Left Join stockupapi_companypart cp on cp.part_id = p.id 
+            Left Join stockupapi_company c on c.id = cp.company_id
+            """,)
+
+            dataset = db_cursor.fetchall()
+
+            [all_parts.append(row) for row in dataset if row["company_id"]==company.id and row["deleted"]==True or row["deleted"]==None] 
+            part_objects = []
+
+            for row in all_parts:
+                part = Part()
+                part.id=row["id"]
+                part.name=row["name"]
+                part.part_number = row["part_number"]
+                part.unit_of_measurement_id=row["unit_of_measurement_id"]
+                part.vendor_id=row["vendor_id"] 
+
+                part_objects.append(part)              
+
+        serializer = PartSerializer(part_objects, many=True, context={'request': request})
 
         return Response(serializer.data)
 
