@@ -138,7 +138,7 @@ class OrderRecViewSet(ViewSet):
                         else:
                             order_rec_part.part_amount_to_order = company_part_order_rec
                             # Prevents removal of good date if user changes sales after ordering
-                            if order_rec_part.date_ordered == '2000-01-01':
+                            if str(order_rec_part.date_ordered) == '2000-01-01':
                                 order_rec_part.date_ordered = None
                                 order_rec_part.date_received = None
                         
@@ -161,7 +161,7 @@ class OrderRecViewSet(ViewSet):
             
             return Response(serializer.data)
         except IndexError:
-            return Response({'error': 'no order rec found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'no order rec found'})
 
     
     @action(methods=["post"], detail=False)
