@@ -6,7 +6,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from stockupapi.models import Company, CompanyPart, Product, OrderRecPart
+from stockupapi.models import Company, CompanyPart, Product, OrderRecPart, CompanyVendor
 
 class UserInventoryViewSet(ViewSet):
     def create(self, request):
@@ -25,13 +25,25 @@ class UserInventoryViewSet(ViewSet):
             company_part = CompanyPart()
             company_part.company = company
             company_part.part = part
+
+            try:
+                CompanyVendor.objects.get(pk=part.vendor.id)
+                
+                pass
+
+            except CompanyVendor.DoesNotExist:
+                company_vendor = CompanyVendor()
+                company_vendor.company = company
+                company_vendor.vendor = part.vendor
+
+                company_vendor.save()
         
         company_part.in_inventory = request.data["inInventory"]
         company_part.min_required = request.data["minRequired"]
         company_part.cost = request.data["cost"]
 
         company_part.save()
-
+            
         serializer = CompanyPartSerializer(company_part, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)

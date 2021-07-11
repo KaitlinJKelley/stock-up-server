@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from stockupapi.models import CompanyPart
-from stockupapi.models import Company
+from stockupapi.models import Company, CompanyVendor
 from rest_framework.decorators import action
 
 class PartDatabaseViewSet(ViewSet):
@@ -22,6 +22,8 @@ class PartDatabaseViewSet(ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
+        # Get the company that the user creating the part belongs to
+        company = Company.objects.get(employee__user = request.auth.user)
         # TODO: Handle image upload
         # Add the new part to the Part Databas (all parts added by any user)
         new_part = Part()
@@ -53,10 +55,20 @@ class PartDatabaseViewSet(ViewSet):
             new_part.unit_of_measurement = new_uom
 
         new_part.save()
+        
+        try:
+            CompanyVendor.objects.get(pk=new_part.vendor.id)
+            
+            pass
+
+        except CompanyVendor.DoesNotExist:
+            company_vendor = CompanyVendor()
+            company_vendor.company = company
+            company_vendor.vendor = new_part.vendor
+
+            company_vendor.save()
 
         serializer = PartSerializer(new_part, many=False, context={'request': request})
-        # Get the company that the user creating the part belongs to
-        company = Company.objects.get(employee__user = request.auth.user)
         
         # Create a company_part (adds the part to the company's inventory)
         company_part = CompanyPart()
@@ -86,7 +98,6 @@ class PartDatabaseViewSet(ViewSet):
         
         except ValueError:
             return Response({"exists": False})
-
 
 
 class PartSerializer(serializers.ModelSerializer):
