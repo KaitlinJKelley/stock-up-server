@@ -28,6 +28,7 @@ router.register("products", ProductViewSet, "product")
 router.register("database", PartDatabaseViewSet, "database")
 router.register("inventory", UserInventoryViewSet, "inventory")
 router.register("vendors", VendorViewSet, "vendor")
+router.register("company_vendors", CompanyVendorViewSet, "company_vendor")
 router.register("order_recs", OrderRecViewSet, "order_rec")
 router.register("units", UnitOfMeasurementViewSet, "unit")
 
