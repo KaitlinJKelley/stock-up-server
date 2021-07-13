@@ -13,7 +13,15 @@ class CompanyVendorViewSet(ViewSet):
         serializer = CompanyVendorSerializer(company_vendors, many=True, context={"request": request})
 
         return Response(serializer.data)
+    
+    def retrieve(self, request, pk):
+        company = Company.objects.get(employee__user = request.auth.user)
 
+        company_vendor = CompanyVendor.objects.get(pk=pk, company=company)
+
+        serializer = CompanyVendorSerializer(company_vendor, context={'request': request})
+
+        return Response(serializer.data)
 
 class VendorSerializer(serializers.ModelSerializer):
     
@@ -24,7 +32,7 @@ class VendorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CompanyVendorSerializer(serializers.ModelSerializer):
-    
+
     vendor = VendorSerializer()
 
     class Meta:
