@@ -21,10 +21,15 @@ def login_user(request):
         authenticated_user = authenticate(username=username, password=password)
 
         if authenticated_user is not None:
-            token = Token.objects.get(user=authenticated_user)
-            data = json.dumps({"valid": True, "token": token.key})
-            # Returns token to client
-            return HttpResponse(data, content_type='application/json')
+            try:
+                # Delete the user's token and generate a new one every time they log in 
+                Token.objects.get(user=authenticated_user).delete()
+                token = Token.objects.create(user=authenticated_user)
+                data = json.dumps({"valid": True, "token": token.key})
+                # Returns token to client
+                return HttpResponse(data, content_type='application/json')
+            except Token.DoesNotExist:     
+                pass
 
         else:
             # Login combo didn't match any user
