@@ -10,3 +10,4 @@ from .product_company_part import ProductPart
 from .product import Product
 from .unit_of_measurement import UnitOfMeasurement
 from .vendor import Vendor
+from .company_vendor import CompanyVendor

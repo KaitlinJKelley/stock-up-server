@@ -234,13 +234,15 @@ class OrderRecProductSerializer(serializers.BaseSerializer):
             return {
                 "id": instance.id,
                 "name": instance.name,
-                "amount_sold": order_rec_product.amount_sold
+                "deleted": instance.deleted,
+                "amount_sold": order_rec_product.amount_sold,
             }
            
         except:
             return {
                 "id": instance.id,
                 "name": instance.name,
+                "deleted": instance.deleted,
             }
 
 class ProductSerializer(OrderRecProductSerializer):
