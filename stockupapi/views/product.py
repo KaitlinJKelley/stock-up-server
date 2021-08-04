@@ -11,13 +11,16 @@ import os.path
 class ProductViewSet(ViewSet):
 
     def list(self, request):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        products = Product.objects.filter(company=company, deleted=False)
+            products = Product.objects.filter(company=company, deleted=False)
 
-        serializer = ProductSerializer(products, many=True, context={'request': request})
+            serializer = ProductSerializer(products, many=True, context={'request': request})
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({"reset": True})
     
     def create(self, request):
         # TODO: Add image handling
