@@ -24,100 +24,21 @@ class ProductViewSet(ViewSet):
     
     def create(self, request):
         # TODO: Add image handling
-
-        company = Company.objects.get(employee__user = request.auth.user)
-        try:
-            product = Product.objects.get(company=company, name=request.data["name"])
-            product.deleted=False
-        except Product.DoesNotExist:
-            product = Product()
-            product.company = company
-            product.name = request.data["name"]
-
-        product.save()
-        # Create a ProductPart instance for every part the user added when they created the product
-        for part in request.data["parts"]:
-            company_part = CompanyPart.objects.get(pk=part["partId"])
-
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
             try:
-                # if this company_part has been on this product before
-                product_part = ProductPart.objects.get(company_part=company_part, product=product)
-
-                product_part.deleted = False
-
-                product_part.amount_used = part["amountUsed"]
-                
-            except ProductPart.DoesNotExist:
-                # The company_part has never been added to this product
-                product_part = ProductPart()
-                product_part.product = product
-                product_part.company_part = company_part
-                product_part.amount_used = part["amountUsed"]
-
-            product_part.save()
-
-        serializer = ProductSerializer(product, many=False, context={'request': request})
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    def retrieve(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
-
-        try:
-            product = Product.objects.get(pk=pk, company=company, deleted=False)
-
-            serializer = ProductSerializer(product, many=False, context={'request': request})
-
-            # Removes empty string where deleted part existed
-            try:
-                while "" in serializer.data["parts"]:
-                    serializer.data["parts"].remove("")
-            except ValueError:
-                pass
-
-            return Response(serializer.data)
-
-        except Product.DoesNotExist:
-            return Response({"error": "This product does not exist or you may not have access to view it"}, status=status.HTTP_401_UNAUTHORIZED)
-    
-    def destroy(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
-
-        try:
-            product = Product.objects.get(pk=pk, company=company)
-
-            # soft delete
-            product.deleted = True
-            
-            product.save()
-
-            # TODO: Consider deleting associated ProductParts
-
-            return Response({}, status=status.HTTP_204_NO_CONTENT)
-
-        except Product.DoesNotExist:
-            return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)  
-
-    def update(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
-
-        try:
-            product = Product.objects.get(pk=pk, company=company)
-            product.name = request.data["name"]
+                product = Product.objects.get(company=company, name=request.data["name"])
+                product.deleted=False
+            except Product.DoesNotExist:
+                product = Product()
+                product.company = company
+                product.name = request.data["name"]
 
             product.save()
-
-            # Get all ProductPart objects associated with this product
-            product_parts_to_soft_delete = ProductPart.objects.filter(product=product)
-
-            # Soft delete all ProductPart objects
-            for product_part in product_parts_to_soft_delete:
-                ProductPart.soft_delete(self, product_part)
-
-            # Iterate over all company_part IDs passed from client
+            # Create a ProductPart instance for every part the user added when they created the product
             for part in request.data["parts"]:
                 company_part = CompanyPart.objects.get(pk=part["partId"])
-                
+
                 try:
                     # if this company_part has been on this product before
                     product_part = ProductPart.objects.get(company_part=company_part, product=product)
@@ -125,7 +46,7 @@ class ProductViewSet(ViewSet):
                     product_part.deleted = False
 
                     product_part.amount_used = part["amountUsed"]
-                
+                    
                 except ProductPart.DoesNotExist:
                     # The company_part has never been added to this product
                     product_part = ProductPart()
@@ -135,11 +56,100 @@ class ProductViewSet(ViewSet):
 
                 product_part.save()
 
-            return Response({}, status=status.HTTP_204_NO_CONTENT)
+            serializer = ProductSerializer(product, many=False, context={'request': request})
 
-        except Product.DoesNotExist:
-            return Response()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"reset": True})
+    
+    def retrieve(self, request, pk):
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
+            try:
+                product = Product.objects.get(pk=pk, company=company, deleted=False)
+
+                serializer = ProductSerializer(product, many=False, context={'request': request})
+
+                # Removes empty string where deleted part existed
+                try:
+                    while "" in serializer.data["parts"]:
+                        serializer.data["parts"].remove("")
+                except ValueError:
+                    pass
+
+                return Response(serializer.data)
+
+            except Product.DoesNotExist:
+                return Response({"error": "This product does not exist or you may not have access to view it"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({"reset": True})
+
+    def destroy(self, request, pk):
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
+
+            try:
+                product = Product.objects.get(pk=pk, company=company)
+
+                # soft delete
+                product.deleted = True
+                
+                product.save()
+
+                # TODO: Consider deleting associated ProductParts
+
+                return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+            except Product.DoesNotExist:
+                return Response({"error": "You do not have permission to delete this product"}, status=status.HTTP_401_UNAUTHORIZED)  
+        else:
+            return Response({"reset": True})
+
+    def update(self, request, pk):
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
+
+            try:
+                product = Product.objects.get(pk=pk, company=company)
+                product.name = request.data["name"]
+
+                product.save()
+
+                # Get all ProductPart objects associated with this product
+                product_parts_to_soft_delete = ProductPart.objects.filter(product=product)
+
+                # Soft delete all ProductPart objects
+                for product_part in product_parts_to_soft_delete:
+                    ProductPart.soft_delete(self, product_part)
+
+                # Iterate over all company_part IDs passed from client
+                for part in request.data["parts"]:
+                    company_part = CompanyPart.objects.get(pk=part["partId"])
+                
+                    try:
+                        # if this company_part has been on this product before
+                        product_part = ProductPart.objects.get(company_part=company_part, product=product)
+
+                        product_part.deleted = False
+
+                        product_part.amount_used = part["amountUsed"]
+                    
+                    except ProductPart.DoesNotExist:
+                        # The company_part has never been added to this product
+                        product_part = ProductPart()
+                        product_part.product = product
+                        product_part.company_part = company_part
+                        product_part.amount_used = part["amountUsed"]
+
+                    product_part.save()
+
+                return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+            except Product.DoesNotExist:
+                return Response()
+        else:
+            return Response({"reset": True})
 
 class PartSerializer(serializers.ModelSerializer):
 

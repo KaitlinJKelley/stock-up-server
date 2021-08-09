@@ -24,6 +24,8 @@ class AuthTokenMiddleware(object):
 
         recycle_date = utc.localize(now - token_life)
 
+        login = None
+
         try:
             _, user_token = request.META["HTTP_AUTHORIZATION"].split(" ")
                 
@@ -32,7 +34,7 @@ class AuthTokenMiddleware(object):
         except Token.DoesNotExist:
             # If sone passes a token that doesn't exist after being logged in, the reset property will cause the user to be 
             # redirected to login on the client side regardless of the token
-            token = Token.objects.get(user_id=7)
+            token = Token.objects.get(user_id=1)
 
             request.META["HTTP_AUTHORIZATION"]= f"Token {token.key}"
 
@@ -49,19 +51,18 @@ class AuthTokenMiddleware(object):
 
             token = Token.objects.get(key=token_dict["token"])
 
-        if token.created < recycle_date:
+        if token.created < recycle_date or login:
 
-                user_id = token.user_id
+            user_id = token.user_id
 
-                token.delete()
+            token.delete()
 
-                new_token = Token.objects.create(user_id=user_id)
+            new_token = Token.objects.create(user_id=user_id)
 
-                request.META["HTTP_AUTHORIZATION"]= f"Token {new_token}"
+            request.META["HTTP_AUTHORIZATION"]= f"Token {new_token}"
 
-                request.reset = True
+            request.reset = True
 
-                print("TOKEN RECYCLED")
         else:
             token.reset = False
             
