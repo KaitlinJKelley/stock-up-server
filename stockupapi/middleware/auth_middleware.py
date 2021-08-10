@@ -20,7 +20,7 @@ class AuthTokenMiddleware(object):
 
         now = datetime.now()
 
-        token_life = timedelta(seconds=24)
+        token_life = timedelta(hours=24)
 
         recycle_date = utc.localize(now - token_life)
 
@@ -64,7 +64,7 @@ class AuthTokenMiddleware(object):
             request.reset = True
 
         else:
-            token.reset = False
+            request.reset = False
             
         response = self.get_response(request)
         return response
