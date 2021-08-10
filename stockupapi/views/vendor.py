@@ -5,11 +5,14 @@ from stockupapi.models import Vendor
 
 class VendorViewSet(ViewSet):
     def list(self, request):
-        vendors = Vendor.objects.all().order_by('name')
+        if request.reset == False:
+            vendors = Vendor.objects.all().order_by('name')
 
-        serializer = VendorSerializer(vendors, many=True, context={'request': request})
+            serializer = VendorSerializer(vendors, many=True, context={'request': request})
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({"reset": True})
 
 class VendorSerializer(serializers.ModelSerializer):
 
