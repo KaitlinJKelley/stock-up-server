@@ -1,7 +1,6 @@
 from stockupapi.views.auth import login_user
 from rest_framework.authtoken.models import Token
 from datetime import datetime, timedelta
-from django.contrib.auth.models import User
 import json
 import pytz
 
@@ -48,7 +47,10 @@ class AuthTokenMiddleware(object):
             login = login_user(request)
 
             token_dict = json.loads(login.content.decode("utf-8"))
-
+            if token_dict.valid == False:
+                response = self.get_response(request)
+                return response
+                
             token = Token.objects.get(key=token_dict["token"])
 
         if token.created < recycle_date or login:
