@@ -6,11 +6,14 @@ from rest_framework import status
 
 class UnitOfMeasurementViewSet(ViewSet):
     def list(self, request):
-        unit_of_measurement = UnitOfMeasurement.objects.all()
+        if request.reset == False:
+            unit_of_measurement = UnitOfMeasurement.objects.all()
 
-        serializer = UOMSerializer(unit_of_measurement, many=True, context={'request': request})
+            serializer = UOMSerializer(unit_of_measurement, many=True, context={'request': request})
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({"reset": True})
 
 class UOMSerializer(serializers.ModelSerializer):
 

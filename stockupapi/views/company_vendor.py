@@ -7,37 +7,46 @@ from stockupapi.models import Vendor, Company
 
 class CompanyVendorViewSet(ViewSet):
     def list(self, request):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        company_vendors = CompanyVendor.objects.filter(company=company)
+            company_vendors = CompanyVendor.objects.filter(company=company)
 
-        serializer = CompanyVendorSerializer(company_vendors, many=True, context={"request": request})
+            serializer = CompanyVendorSerializer(company_vendors, many=True, context={"request": request})
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({"reset": True})
     
     def retrieve(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        company_vendor = CompanyVendor.objects.get(pk=pk, company=company)
+            company_vendor = CompanyVendor.objects.get(pk=pk, company=company)
 
-        serializer = CompanyVendorSerializer(company_vendor, context={'request': request})
+            serializer = CompanyVendorSerializer(company_vendor, context={'request': request})
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({"reset": True})
 
     def update(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        company_vendor = CompanyVendor.objects.get(pk=pk, company=company)
+            company_vendor = CompanyVendor.objects.get(pk=pk, company=company)
 
-        company_vendor.sales_rep_name = request.data["salesRepName"]
-        company_vendor.sales_rep_phone = request.data["salesRepPhone"]
-        company_vendor.address = request.data["address"]
-        company_vendor.login_username = request.data["loginUsername"]
-        company_vendor.login_password = request.data["loginPassword"]
+            company_vendor.sales_rep_name = request.data["salesRepName"]
+            company_vendor.sales_rep_phone = request.data["salesRepPhone"]
+            company_vendor.address = request.data["address"]
+            company_vendor.login_username = request.data["loginUsername"]
+            company_vendor.login_password = request.data["loginPassword"]
 
-        company_vendor.save()
+            company_vendor.save()
 
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"reset": True})
 
 class VendorSerializer(serializers.ModelSerializer):
     

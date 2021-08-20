@@ -11,104 +11,119 @@ from stockupapi.models import Company, CompanyPart, Product, OrderRecPart, Compa
 class UserInventoryViewSet(ViewSet):
     def create(self, request):
         # TODO: Handle image upload
-        company = Company.objects.get(employee__user = request.auth.user)
-        company_part = None
-
-        try:
-            # If the user has had this part in inventory before, undelete it
-            company_part = CompanyPart.objects.get(part_id=request.data["partId"], company=company)
-            company_part.deleted = False
-        except CompanyPart.DoesNotExist:
-
-            # Create a company_part (adds the part to the company's inventory)
-            part = Part.objects.get(pk=request.data["partId"])
-            company_part = CompanyPart()
-            company_part.company = company
-            company_part.part = part
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
+            company_part = None
 
             try:
-                CompanyVendor.objects.get(pk=part.vendor.id)
-                
-                pass
+                # If the user has had this part in inventory before, undelete it
+                company_part = CompanyPart.objects.get(part_id=request.data["partId"], company=company)
+                company_part.deleted = False
+            except CompanyPart.DoesNotExist:
 
-            except CompanyVendor.DoesNotExist:
-                company_vendor = CompanyVendor()
-                company_vendor.company = company
-                company_vendor.vendor = part.vendor
+                # Create a company_part (adds the part to the company's inventory)
+                part = Part.objects.get(pk=request.data["partId"])
+                company_part = CompanyPart()
+                company_part.company = company
+                company_part.part = part
 
-                company_vendor.save()
+                try:
+                    CompanyVendor.objects.get(pk=part.vendor.id)
+                    
+                    pass
+
+                except CompanyVendor.DoesNotExist:
+                    company_vendor = CompanyVendor()
+                    company_vendor.company = company
+                    company_vendor.vendor = part.vendor
+
+                    company_vendor.save()
         
-        company_part.in_inventory = request.data["inInventory"]
-        company_part.min_required = request.data["minRequired"]
-        company_part.cost = request.data["cost"]
+            company_part.in_inventory = request.data["inInventory"]
+            company_part.min_required = request.data["minRequired"]
+            company_part.cost = request.data["cost"]
 
-        company_part.save()
-            
-        serializer = CompanyPartSerializer(company_part, context={'request': request})
+            company_part.save()
+                
+            serializer = CompanyPartSerializer(company_part, context={'request': request})
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"reset": True})
     
     def retrieve(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
-
-        try:
-            company_part = CompanyPart.objects.get(pk=pk, company=company, deleted=False) 
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
             try:
-                recent_order_rec_part = OrderRecPart.objects.filter(product_part__company_part_id=company_part.id).order_by('-order_rec_id')[0]
-                
-                company_part.recent_order_rec_part = recent_order_rec_part
-            except IndexError:
-                pass
+                company_part = CompanyPart.objects.get(pk=pk, company=company, deleted=False) 
 
-            serializer = CompanyPartSerializer(company_part, context={'request': request}) 
+                try:
+                    recent_order_rec_part = OrderRecPart.objects.filter(product_part__company_part_id=company_part.id).order_by('-order_rec_id')[0]
+                    
+                    company_part.recent_order_rec_part = recent_order_rec_part
+                except IndexError:
+                    pass
 
-            for product in serializer.data["products"]:
-                if product["deleted"] == True:
-                    serializer.data["products"].remove(product)
+                serializer = CompanyPartSerializer(company_part, context={'request': request}) 
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED) 
+                for product in serializer.data["products"]:
+                    if product["deleted"] == True:
+                        serializer.data["products"].remove(product)
 
-        except CompanyPart.DoesNotExist:
-            return Response({"error": "You do not have permission to view this part, or the part may not exist"}, status=status.HTTP_401_UNAUTHORIZED)
-    
+                return Response(serializer.data, status=status.HTTP_201_CREATED) 
+
+            except CompanyPart.DoesNotExist:
+                return Response({"error": "You do not have permission to view this part, or the part may not exist"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({"reset": True})
+
     def list(self, request):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        company_parts = CompanyPart.objects.filter(company=company, deleted=False)
+            company_parts = CompanyPart.objects.filter(company=company, deleted=False)
 
-        serializer = CompanyPartSerializer(company_parts, many=True, context={'request': request})
+            serializer = CompanyPartSerializer(company_parts, many=True, context={'request': request})
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({"reset": True})
     
     def update(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        company_part = CompanyPart.objects.get(pk=pk, company=company)
+            company_part = CompanyPart.objects.get(pk=pk, company=company)
 
-        company_part.in_inventory = request.data["inInventory"]
-        company_part.min_required = request.data["minRequired"]
-        company_part.cost = request.data["cost"]
+            company_part.in_inventory = request.data["inInventory"]
+            company_part.min_required = request.data["minRequired"]
+            company_part.cost = request.data["cost"]
 
-        company_part.save()
+            company_part.save()
 
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"reset": True})
     
     def destroy(self, request, pk):
-        company = Company.objects.get(employee__user = request.auth.user)
+        if request.reset == False:
+            company = Company.objects.get(employee__user = request.auth.user)
 
-        company_part = CompanyPart.objects.get(pk=pk, company=company)
-        company_part.deleted = True
+            company_part = CompanyPart.objects.get(pk=pk, company=company)
+            company_part.deleted = True
 
-        company_part.save()
+            company_part.save()
 
-        product_parts = ProductPart.objects.filter(company_part=company_part, deleted=False)
+            product_parts = ProductPart.objects.filter(company_part=company_part, deleted=False)
 
-        for product_part in product_parts:
-            # Marks product as deleted so it's hidden from the user but still accessible for reports
-            ProductPart.soft_delete(self, product_part)
-        
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
+            for product_part in product_parts:
+                # Marks product as deleted so it's hidden from the user but still accessible for reports
+                ProductPart.soft_delete(self, product_part)
+            
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"reset": True})
         
 
 class OrderRecPartSerializer(serializers.ModelSerializer):
