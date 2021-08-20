@@ -9,6 +9,7 @@ from rest_framework import status
 from stockupapi.models import CompanyPart
 from stockupapi.models import Company, CompanyVendor
 from rest_framework.decorators import action
+from itertools import chain
 
 class PartDatabaseViewSet(ViewSet):
     def list(self, request):
@@ -16,8 +17,10 @@ class PartDatabaseViewSet(ViewSet):
             company = Company.objects.get(employee__user = request.auth.user)
 
             # Should return all parts EXCEPT the parts that have been added to the company's inventory AND are not marked deleted
-            all_parts = Part.objects.all().exclude(companies=company, companypart__deleted=False)           
+            all_parts_deleted = Part.objects.filter(companies__companypart__company=company, companypart__deleted=True).distinct()           
+            all_parts_never_added = Part.objects.exclude(companies__companypart__company=company)           
 
+            all_parts = list(chain(all_parts_deleted, all_parts_never_added))
             serializer = PartSerializer(all_parts, many=True, context={'request': request})
 
             return Response(serializer.data)

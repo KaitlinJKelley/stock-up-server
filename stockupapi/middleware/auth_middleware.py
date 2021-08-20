@@ -47,10 +47,10 @@ class AuthTokenMiddleware(object):
             login = login_user(request)
 
             token_dict = json.loads(login.content.decode("utf-8"))
-            if token_dict.valid == False:
+            if token_dict["valid"] == False:
                 response = self.get_response(request)
                 return response
-                
+
             token = Token.objects.get(key=token_dict["token"])
 
         if token.created < recycle_date or login:
